@@ -21,6 +21,7 @@ from .seed import seed_initial_data
 APP_DIR = Path(__file__).resolve().parent
 TEMPLATES_DIR = APP_DIR / "templates"
 STATIC_DIR = APP_DIR / "static"
+IMAGES_DIR = TEMPLATES_DIR / "images"
 
 
 def create_app() -> FastAPI:
@@ -39,6 +40,10 @@ def create_app() -> FastAPI:
 
     if STATIC_DIR.exists():
         app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
+
+    # Serve template images (development convenience)
+    if IMAGES_DIR.exists():
+        app.mount("/templates/images", StaticFiles(directory=str(IMAGES_DIR)), name="template-images")
 
     # Routers
     app.include_router(pages_router)
