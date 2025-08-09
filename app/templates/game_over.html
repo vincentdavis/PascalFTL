@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="row">
+  <div class="col">
+    <div class="card">
+      <h2>Game Over <span class="pill">{{ game.code }}</span></h2>
+      <p>Winner: <strong>{{ game.winner_name or 'Unknown' }}</strong></p>
+      <h3>Final Standings</h3>
+      <table>
+        <thead><tr><th>Player</th><th>Ship</th><th>Health</th><th>Shields</th><th>Weapons</th></tr></thead>
+        <tbody>
+          {% for p in game.players %}
+          <tr>
+            <td>{{ p.name }}</td>
+            <td>{{ p.ship_type.name if p.ship_type else '—' }}</td>
+            <td>{{ p.health }}</td>
+            <td>{{ p.shields }}</td>
+            <td>{{ p.weapons }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      <div style="margin-top:12px; display:flex; gap:12px;">
+        <a class="pill" href="/">Back to Home</a>
+        <a class="pill" href="/create">Create New Game</a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,13 @@
+<div id="ready-btn">
+  <form hx-post="/ready" hx-target="#ready-btn" hx-swap="outerHTML" style="display:inline-block">
+    <input type="hidden" name="code" value="{{ code }}">
+    <input type="hidden" name="player_id" value="{{ player.id }}">
+    {% if player.ready %}
+      <input type="hidden" name="ready" value="0">
+      <button type="submit">Unready</button>
+    {% else %}
+      <input type="hidden" name="ready" value="1">
+      <button type="submit" class="primary">Ready Up</button>
+    {% endif %}
+  </form>
+</div>

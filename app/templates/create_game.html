@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card">
+  <h2>Create New Game</h2>
+  <form method="post" action="/create" class="grid" style="align-items:end">
+    <div>
+      <label for="host_name">Your name</label><br>
+      <input type="text" id="host_name" name="host_name" placeholder="Captain" required maxlength="100">
+    </div>
+    <div>
+      <label for="max_players">Players</label><br>
+      <select id="max_players" name="max_players">
+        <option value="2">2</option>
+        <option value="3">3</option>
+        <option value="4">4</option>
+      </select>
+    </div>
+    <div>
+      <button type="submit" class="primary">Create Game</button>
+    </div>
+  </form>
+  <p class="muted">After creating the game, you'll get a configuration page and a join link to invite friends.</p>
+</div>
+{% endblock %}

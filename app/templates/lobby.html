@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="row">
+  <div class="col">
+    <div class="card">
+      <h2>Waiting Room <span class="pill">Game {{ game.code }}</span></h2>
+      <div id="players" hx-get="/fragment/lobby_players?code={{ game.code }}" hx-trigger="load, every 1s" hx-swap="innerHTML">
+        <!-- players table injected here -->
+      </div>
+      <p class="muted">Invite link: <a class="mono" href="/join/{{ game.code }}">/join/{{ game.code }}</a></p>
+    </div>
+  </div>
+  <div class="col">
+    <div class="card">
+      <h3>Your Controls</h3>
+      {% if player %}
+      <div id="ready-btn">
+        <form hx-post="/ready" hx-target="#ready-btn" hx-swap="outerHTML" style="display:inline-block">
+          <input type="hidden" name="code" value="{{ game.code }}">
+          <input type="hidden" name="player_id" value="{{ player.id }}">
+          {% if player.ready %}
+            <input type="hidden" name="ready" value="0">
+            <button type="submit">Unready</button>
+          {% else %}
+            <input type="hidden" name="ready" value="1">
+            <button type="submit" class="primary">Ready Up</button>
+          {% endif %}
+        </form>
+      </div>
+      {% else %}
+      <p class="muted">Join this game to control readiness.</p>
+      {% endif %}
+      {% if player and player.is_host %}
+      {% set ready_count = (game.players | selectattr('ready') | list | length) %}
+      {% set all_ready = ready_count == (game.players | length) %}
+      {% set disable_start = (game.players | length) < 2 or (not all_ready) %}
+      <form method="post" action="/start/{{ game.code }}" style="margin-top:12px;">
+        <input type="hidden" name="player_id" value="{{ player.id }}">
+        <button type="submit" class="primary" {% if disable_start %}disabled{% endif %}>Start Game</button>
+      </form>
+      <p class="muted">All players must be ready. Minimum 2 players.</p>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

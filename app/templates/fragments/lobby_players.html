@@ -1,0 +1,25 @@
+<p>Players: {{ game.players|length }} / {{ game.max_players }}</p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Ship</th>
+      <th>Upgrades</th>
+      <th>Tokens</th>
+      <th>Ready</th>
+      <th>Host</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for p in game.players %}
+    <tr>
+      <td>{{ p.name }}</td>
+      <td>{{ p.ship_type.name if p.ship_type else '—' }}</td>
+      <td>{{ p.upgrades|length }}</td>
+      <td>{{ p.tokens }}</td>
+      <td>{% if p.ready %}✅{% else %}—{% endif %}</td>
+      <td>{% if p.is_host %}⭐{% endif %}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>

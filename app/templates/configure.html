@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card">
+  <h2>Configure Your Ship <span class="pill">Game {{ game.code }}</span></h2>
+  <p class="muted">Budget: 100 tokens. Choose a ship and optional upgrades. Server validates costs.</p>
+  <form method="post" action="/configure" id="config-form">
+    <input type="hidden" name="code" value="{{ game.code }}">
+    <input type="hidden" name="player_id" value="{{ player.id }}">
+    <div class="grid">
+      <div>
+        <label for="ship_type_id">Ship</label><br>
+        <select id="ship_type_id" name="ship_type_id">
+          {% for s in ships %}
+            <option value="{{ s.id }}" data-cost="{{ s.cost }}">{{ s.name }} (cost {{ s.cost }})</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div>
+        <label>Upgrades</label>
+        <div class="grid">
+        {% for u in upgrades %}
+          <label>
+            <input type="checkbox" name="upgrade_ids" value="{{ u.id }}" data-cost="{{ u.cost }}">
+            {{ u.name }} <span class="muted">({{ u.cost }})</span>
+          </label>
+        {% endfor %}
+        </div>
+      </div>
+    </div>
+    <div style="margin-top:12px; display:flex; gap:12px; align-items:center;">
+      <div class="pill">Estimated cost: <span id="est">0</span> / 100</div>
+      <button type="submit" class="primary">Save &amp; Go to Lobby</button>
+      <a class="pill" href="/join/{{ game.code }}">Invite link</a>
+    </div>
+  </form>
+</div>
+<script>
+(function() {
+  function recalc(){
+    const ship = document.getElementById('ship_type_id');
+    const shipCost = parseInt(ship.options[ship.selectedIndex].dataset.cost || '0');
+    let upCost = 0;
+    document.querySelectorAll('input[name="upgrade_ids"]:checked').forEach(cb => { upCost += parseInt(cb.dataset.cost || '0'); });
+    document.getElementById('est').textContent = shipCost + upCost;
+  }
+  document.getElementById('ship_type_id').addEventListener('change', recalc);
+  document.querySelectorAll('input[name="upgrade_ids"]').forEach(cb => cb.addEventListener('change', recalc));
+  recalc();
+})();
+</script>
+{% endblock %}

@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="row">
+  <div class="col">
+    <div class="card">
+      <h2>Game <span class="pill">{{ game.code }}</span></h2>
+      <div class="grid">
+        {% for p in game.players %}
+        <div class="card">
+          <h3>{{ p.name }} {% if p.is_host %}<span class="pill">Host</span>{% endif %}</h3>
+          <p class="muted">{{ p.ship_type.name if p.ship_type else 'Unconfigured' }}</p>
+          <div class="grid">
+            <div>Health: <strong>{{ p.health }}</strong></div>
+            <div>Shields: <strong>{{ p.shields }}</strong></div>
+            <div>Power: <strong>{{ p.power }}</strong></div>
+            <div>Speed: <strong>{{ p.speed }}</strong></div>
+            <div>Fuel: <strong>{{ p.fuel }}</strong></div>
+            <div>Weapons: <strong>{{ p.weapons }}</strong></div>
+            <div>Crew: <strong>{{ p.ship_type.base_crew if p.ship_type else 0 }}</strong></div>
+            <div>Cargo Cap: <strong>{{ p.cargo_capacity }}</strong></div>
+            <div>Cargo Space: <strong>{{ p.cargo_space }}</strong></div>
+            <div>Tokens Left: <strong>{{ p.tokens }}</strong></div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+  <div class="col">
+    <div class="card">
+      <h3>Battle Log</h3>
+      <div id="log" class="log"></div>
+      <div id="status" class="muted" style="margin-top:8px;">Connecting...</div>
+      <div style="margin-top:8px;">
+        <a class="pill" href="/game_over/{{ game.code }}">Go to Game Over</a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block extra_scripts %}
+<script>
+(function(){
+  const code = "{{ game.code }}";
+  const proto = (location.protocol === 'https:') ? 'wss' : 'ws';
+  const ws = new WebSocket(`${proto}://${location.host}/ws/${code}`);
+  const log = document.getElementById('log');
+  const status = document.getElementById('status');
+  function append(text){ log.textContent += text; log.scrollTop = log.scrollHeight; }
+  ws.onopen = () => { status.textContent = 'Connected'; };
+  ws.onmessage = (ev) => {
+    if (ev.data === '__END__') {
+      status.textContent = 'Battle complete';
+      setTimeout(() => { window.location.href = `/game_over/${code}`; }, 800);
+      return;
+    }
+    append(ev.data);
+  };
+  ws.onclose = () => { status.textContent = 'Disconnected'; };
+})();
+</script>
+{% endblock %}

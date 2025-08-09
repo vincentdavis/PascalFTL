@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card">
+  <h2>Join Game <span class="mono">{{ game.code }}</span></h2>
+  <form method="post" action="/join/{{ game.code }}" class="grid" style="align-items:end">
+    <div>
+      <label for="name">Your name</label><br>
+      <input type="text" id="name" name="name" placeholder="Pilot" required maxlength="100">
+    </div>
+    <div>
+      <button type="submit" class="primary">Join</button>
+    </div>
+  </form>
+  <p class="muted">Share this link with friends to join: <span class="mono">{{ request.url }}</span></p>
+</div>
+{% endblock %}
