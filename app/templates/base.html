@@ -8,7 +8,17 @@
     <style>
         :root { --bg: #ffffff; --fg: #6c594c; --muted: #6c594c; --acc: #6c594c; --card: #e7e2da; }
         * { box-sizing: border-box; }
-        body { margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji"; background: var(--bg); color: var(--fg); }
+        body {
+            margin: 0;
+            font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+            color: var(--fg);
+            background-color: var(--bg);
+            background-image: url('/templates/images/pascals_ftl_ship_background.png');
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            background-position: center center;
+        }
         a { color: var(--acc); text-decoration: none; }
         header { background: #e6e1d8; border-bottom: 1px solid #6c594c; padding: 12px 16px; display:flex; align-items:center; justify-content:space-between; }
         .brand { font-weight: 700; letter-spacing: .5px; }
