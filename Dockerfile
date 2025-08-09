@@ -10,4 +10,5 @@ COPY . .
 RUN uv sync --frozen
 
 # Run the app using the script.
-CMD uv run uvicorn app.main:app --host 0.0.0.0 --port $APP_PORT
+#CMD uv run uvicorn app.main:app --host 0.0.0.0 --port $APP_PORT
+CMD ["uv", "run", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "$PORT"]
