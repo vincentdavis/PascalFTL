@@ -1,32 +1,185 @@
-:root { --bg: #ffffff; --fg: #6c594c; --muted: #6c594c; --acc: #6c594c; --card: #e7e2da; }
-* { box-sizing: border-box; }
-body {
-    margin: 0;
-    font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
-    color: var(--fg);
-    background-color: var(--bg);
-    background-image: url('/templates/images/pascals_ftl_ship_background.png');
-    background-size: cover;
-    background-repeat: no-repeat;
-    background-attachment: fixed;
-    background-position: center center;
+/*
+ PFTL (Pascal's Faster Than Light) - Application Stylesheet
+
+ Purpose:
+ - Centralize and document styles used across pages (home, create/join, lobby, game).
+ - Provide a lightweight themed UI without a CSS framework.
+
+ Structure:
+  1) Theme variables
+  2) Base / reset
+  3) Typography & links
+  4) Layout containers
+  5) Components
+  6) Forms & buttons
+  7) Tables
+  8) Utilities
+*/
+
+/* =====================================
+   1) Theme variables
+   -------------------------------------
+   Central color variables for the game's look and feel.
+   Adjust here to quickly re-skin the UI.
+===================================== */
+:root {
+    --acc: #6c594c;   /* Accent color for links and highlights */
+    --bg: #ffffff;    /* Base page background */
+    --card: #e7e2da;  /* Card surface */
+    --fg: #6c594c;    /* Primary foreground text color */
+    --muted: #6c594c; /* Muted text tone */
 }
-a { color: var(--acc); text-decoration: none; }
-header { background: #e6e1d8; border-bottom: 1px solid #6c594c; padding: 12px 16px; display:flex; align-items:center; justify-content:space-between; }
-.brand { font-weight: 700; letter-spacing: .5px; }
-nav a { margin-right: 12px; }
-main { max-width: 980px; margin: 24px auto; padding: 0 16px; }
-.card { background: var(--card); border: 1px solid #736155; border-radius: 8px; padding: 16px; margin-bottom: 16px; }
-.row { display:flex; gap:16px; flex-wrap: wrap; }
-.col { flex: 1 1 300px; }
-input, select, button { background: #c5a48f; border:1px solid #2a3a6a; color:var(--fg); border-radius:6px; padding:8px 10px; }
-button { cursor:pointer; background:#153a5a; }
-button.primary { background: #c5a48f; }
-table { width:100%; border-collapse: collapse; }
-th, td { border-bottom: 1px solid #24396a; text-align:left; padding:8px; }
-.muted { color: var(--muted); }
-.pill { display:inline-block; background: #c5a48f; padding:2px 8px; border-radius:999px; font-size:12px; }
-.center { text-align:center; }
-.grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap:12px; }
-.mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
-.log { background: #6c594c; border:1px solid #1a2f55; border-radius:8px; padding:12px; height:280px; overflow:auto; white-space:pre-wrap; }
+
+/* =====================================
+   2) Base / reset
+   -------------------------------------
+   Normalize sizing and define the global background.
+===================================== */
+* {
+    box-sizing: border-box;
+}
+
+body {
+    background-attachment: fixed;
+    background-color: var(--bg);
+    background-image: url("/templates/images/pascals_ftl_ship_background.png");
+    background-position: center center;
+    background-repeat: no-repeat;
+    background-size: cover;
+    color: var(--fg);
+    font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Helvetica, Arial,
+        "Apple Color Emoji", "Segoe UI Emoji";
+    margin: 0;
+}
+
+/* =====================================
+   3) Typography & links
+===================================== */
+a {
+    color: var(--acc);
+    text-decoration: none;
+}
+
+.mono {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+}
+
+.muted {
+    color: var(--muted);
+}
+
+/* =====================================
+   4) Layout containers
+===================================== */
+header {
+    align-items: center;
+    background: #e6e1d8;
+    border-bottom: 1px solid #6c594c;
+    display: flex;
+    justify-content: space-between;
+    padding: 12px 16px;
+}
+
+.brand {
+    font-weight: 700;
+    letter-spacing: 0.5px;
+}
+
+nav a {
+    margin-right: 12px;
+}
+
+main {
+    margin: 24px auto;
+    max-width: 980px;
+    padding: 0 16px;
+}
+
+.row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.col {
+    flex: 1 1 300px;
+}
+
+.grid {
+    display: grid;
+    gap: 12px;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+/* =====================================
+   5) Components
+===================================== */
+.card {
+    background: var(--card);
+    border: 1px solid #736155;
+    border-radius: 8px;
+    margin-bottom: 16px;
+    padding: 16px;
+}
+
+.pill {
+    background: #c5a48f;
+    border-radius: 999px; /* fully rounded */
+    display: inline-block;
+    font-size: 12px;
+    padding: 2px 8px;
+}
+
+.log {
+    background: #6c594c;
+    border: 1px solid #1a2f55;
+    border-radius: 8px;
+    height: 280px;
+    overflow: auto;
+    padding: 12px;
+    white-space: pre-wrap; /* preserve logs while wrapping long lines */
+}
+
+/* =====================================
+   6) Forms & buttons
+===================================== */
+input,
+select,
+button {
+    background: #c5a48f;
+    border: 1px solid #2a3a6a;
+    border-radius: 6px;
+    color: var(--fg);
+    padding: 8px 10px;
+}
+
+button {
+    background: #153a5a;
+    cursor: pointer;
+}
+
+button.primary {
+    background: #c5a48f; /* matches inputs for visual grouping */
+}
+
+/* =====================================
+   7) Tables
+===================================== */
+table {
+    border-collapse: collapse;
+    width: 100%;
+}
+
+th,
+td {
+    border-bottom: 1px solid #24396a;
+    padding: 8px;
+    text-align: left;
+}
+
+/* =====================================
+   8) Utilities
+===================================== */
+.center {
+    text-align: center;
+}
