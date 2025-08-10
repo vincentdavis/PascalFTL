@@ -5,7 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>PFTL - Pascal's Faster Than Light</title>
     <script src="https://unpkg.com/htmx.org@1.9.12"></script>
+    <!-- Bootstrap 5 CSS -->
+    <link rel="stylesheet" href="/static/bootstrap_5/css/bootstrap.min.css">
+    <!-- App legacy styles -->
     <link rel="stylesheet" href="/static/css/app.css">
+    <!-- New Bootstrap theme overrides -->
+    <link rel="stylesheet" href="/static/css/app_v2.css">
 </head>
 <body>
 <header>
@@ -23,6 +28,8 @@
 <main>
     {% block content %}{% endblock %}
 </main>
+<!-- Bootstrap 5 JS (with Popper) -->
+<script src="/static/bootstrap_5/js/bootstrap.bundle.min.js"></script>
 {% block extra_scripts %}{% endblock %}
 </body>
 </html>

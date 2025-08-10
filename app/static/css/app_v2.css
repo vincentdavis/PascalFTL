@@ -1,0 +1,66 @@
+/*
+app_v2.css — Bootstrap 5 custom theme overrides for Pascal's Faster Than Light
+
+Guidelines:
+- Place Bootstrap overrides here. This file loads AFTER Bootstrap and app.css.
+- Prefer CSS variables and utility classes for theme adjustments.
+- Keep selectors minimal and avoid !important unless necessary.
+*/
+
+:root {
+    /* Core color palette (Bootstrap CSS variables) */
+    --bs-primary: #6c5ce7;   /* Purple */
+    --bs-secondary: #00b894; /* Teal */
+    --bs-success: #2ecc71;
+    --bs-info: #0984e3;
+    --bs-warning: #f1c40f;
+    --bs-danger: #e74c3c;
+    --bs-light: #f8f9fa;
+    --bs-dark: #1e272e;
+
+    /* Body */
+    --bs-body-bg: #0b0f14;    /* Space dark */
+    --bs-body-color: #e6eef7; /* Light text */
+}
+
+/* Brand/header tweaks to work nicely with Bootstrap */
+header {
+    background: linear-gradient(180deg, rgba(16,24,32,0.9), rgba(11,15,20,0.9));
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+header .brand a {
+    color: var(--bs-light);
+    text-decoration: none;
+    font-weight: 600;
+}
+header nav a {
+    margin-right: 1rem;
+}
+
+/* Card adjustments to blend with space theme */
+.card {
+    background-color: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 0.5rem;
+}
+
+/* Buttons using Bootstrap variables */
+.btn-primary,
+button.primary {
+    background-color: var(--bs-primary);
+    border-color: var(--bs-primary);
+}
+.btn-primary:hover,
+button.primary:hover {
+    background-color: #5a4bd6;
+    border-color: #5a4bd6;
+}
+
+/* Utility helpers */
+.muted { color: rgba(230, 238, 247, 0.65); }
+.mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
+
+/* Container width adjustments for future Bootstrap grid usage */
+.container {
+    max-width: 1100px;
+}
