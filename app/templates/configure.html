@@ -3,6 +3,12 @@
 <div class="card">
   <h2>Configure Your Ship <span class="pill">Game {{ game.code }}</span></h2>
   <p class="muted">Budget: 100 tokens. Choose a ship and optional upgrades. Server validates costs.</p>
+
+  <!-- Over-budget warning banner -->
+  <div id="over-budget" class="warning-banner" role="alert" aria-live="assertive" style="display:none;">
+    YOU HAVE SPENT TOO MUCH
+  </div>
+
   <form method="post" action="/configure" id="config-form">
     <input type="hidden" name="code" value="{{ game.code }}">
     <input type="hidden" name="player_id" value="{{ player.id }}">
@@ -36,12 +42,23 @@
 </div>
 <script>
 (function() {
+  const BUDGET = 100;
+  const banner = document.getElementById('over-budget');
+  const estEl = document.getElementById('est');
   function recalc(){
     const ship = document.getElementById('ship_type_id');
     const shipCost = parseInt(ship.options[ship.selectedIndex].dataset.cost || '0');
     let upCost = 0;
     document.querySelectorAll('input[name="upgrade_ids"]:checked').forEach(cb => { upCost += parseInt(cb.dataset.cost || '0'); });
-    document.getElementById('est').textContent = shipCost + upCost;
+    const total = shipCost + upCost;
+    estEl.textContent = total;
+    if (total > BUDGET) {
+      banner.style.display = 'block';
+      banner.classList.add('flash');
+    } else {
+      banner.style.display = 'none';
+      banner.classList.remove('flash');
+    }
   }
   document.getElementById('ship_type_id').addEventListener('change', recalc);
   document.querySelectorAll('input[name="upgrade_ids"]').forEach(cb => cb.addEventListener('change', recalc));
