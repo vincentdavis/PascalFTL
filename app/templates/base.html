@@ -20,9 +20,13 @@
             Pascal's F.T.L.
         </a>
     </div>
-    <nav>
+    <nav style="display:flex; align-items:center; gap:12px;">
         <a href="/">Home</a>
-        <a href="/create">Create Game</a>
+        <a href="/create" class="primary" style="padding:6px 10px;">Create Game</a>
+        <form onsubmit="const c=this.elements['code'].value.trim().toUpperCase(); if(c){ window.location.href='/join/'+c; } return false;" style="display:flex; align-items:center; gap:6px; margin:0;">
+            <input type="text" name="code" placeholder="Game code" maxlength="12" title="Enter game code" style="width:140px;" />
+            <button type="submit" class="primary">Join</button>
+        </form>
     </nav>
 </header>
 <main>
