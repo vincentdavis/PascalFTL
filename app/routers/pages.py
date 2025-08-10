@@ -233,6 +233,18 @@ async def lobby_players_fragment(request: Request, code: str, db: Session = Depe
     return templates.TemplateResponse("fragments/lobby_players.html", {"request": request, "game": game})
 
 
+@router.get("/fragment/lobby_controls", response_class=HTMLResponse)
+async def lobby_controls_fragment(
+    request: Request, code: str, player_id: Optional[int] = None, db: Session = Depends(get_db)
+) -> HTMLResponse:
+    templates = _templates(request)
+    game = _get_game(db, code)
+    player = db.get(GamePlayer, int(player_id)) if player_id else None
+    return templates.TemplateResponse(
+        "fragments/lobby_controls.html", {"request": request, "game": game, "player": player}
+    )
+
+
 @router.post("/ready")
 async def toggle_ready(request: Request, db: Session = Depends(get_db)) -> HTMLResponse:
     form = await request.form()

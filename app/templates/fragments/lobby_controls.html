@@ -1,0 +1,24 @@
+<div id="controls">
+  <h3>Your Controls</h3>
+  {% if player %}
+  {% set code = game.code %}
+  {% include "fragments/ready_button.html" %}
+  {% else %}
+  <p class="muted">Join this game to control readiness.</p>
+  {% endif %}
+
+  {% set ready_count = (game.players | selectattr('ready') | list | length) %}
+  {% set all_ready = ready_count == (game.players | length) %}
+  {% set disable_start = (game.players | length) < 2 or (not all_ready) %}
+
+  {% if player and player.is_host %}
+  <form method="post" action="/start/{{ game.code }}" style="margin-top:12px;">
+    <input type="hidden" name="player_id" value="{{ player.id }}">
+    <button type="submit" class="primary" {% if disable_start %}disabled{% endif %}>Start Game</button>
+  </form>
+  <p class="muted">All players must be ready. Minimum 2 players.</p>
+  {% elif player %}
+  <button type="button" class="primary" disabled style="margin-top:12px;">Start Game (Host only)</button>
+  <p class="muted">Waiting for the host to start the game once all players are ready.</p>
+  {% endif %}
+</div>

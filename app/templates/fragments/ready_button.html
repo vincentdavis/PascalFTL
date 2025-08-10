@@ -1,5 +1,5 @@
 <div id="ready-btn">
-  <form hx-post="/ready" hx-target="#ready-btn" hx-swap="outerHTML" style="display:inline-block">
+  <form method="post" action="/ready" hx-post="/ready" hx-target="#ready-btn" hx-swap="outerHTML" style="display:inline-block">
     <input type="hidden" name="code" value="{{ code }}">
     <input type="hidden" name="player_id" value="{{ player.id }}">
     {% if player.ready %}
