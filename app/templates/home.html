@@ -25,8 +25,13 @@
       {% if recent %}
       <ul>
         {% for g in recent %}
+          {% set losers = g.players | rejectattr('name', 'equalto', g.winner_name) | map(attribute='name') | list %}
           <li>
-            <span class="mono">{{ g.code }}</span> — Winner: <strong>{{ g.winner_name or 'TBD' }}</strong>
+            <span class="mono">{{ g.code }}</span>
+            — Winner: <strong>{{ g.winner_name or 'TBD' }}</strong>
+            {% if losers and losers|length > 0 %}
+              — {{ 'Loser' if losers|length == 1 else 'Losers' }}: <strong>{{ losers | join(', ') }}</strong>
+            {% endif %}
             <a href="/game_over/{{ g.code }}">View</a>
           </li>
         {% endfor %}
