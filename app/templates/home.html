@@ -1,13 +1,36 @@
 {% extends "base.html" %}
 {% block content %}
+<!--Row 1-->
 <div class="row">
+
   <div class="col">
-    <div class="card">
+
+    <div id="create_game" class="card">
       <h2>Create a new game</h2>
       <p>Choose number of players (2–4) and your host name.</p>
       <a class="pill" href="/create">Start setup →</a>
     </div>
-    <div class="card">
+
+    <div id="Leaderboard" class="card">
+      <h2>Leaderboard</h2>
+      {% if winners %}
+      <table>
+        <thead><tr><th>Player</th><th>Wins</th></tr></thead>
+        <tbody>
+        {% for name, count in winners %}
+        <tr><td>{{ name or 'Unknown' }}</td><td>{{ count }}</td></tr>
+        {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <p class="muted">No games completed yet.</p>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="col">
+
+    <div id="join_game" class="card">
       <h2>Join a game</h2>
       <div class="row">
         <input id="join-code" placeholder="Enter game code" maxlength="12" class="col" />
@@ -15,24 +38,8 @@
       </div>
       <p class="muted">Ask your friend for the game code or invite link.</p>
     </div>
-  </div>
-  <div class="col">
-    <div class="card">
-      <h2>Leaderboard</h2>
-      {% if winners %}
-      <table>
-        <thead><tr><th>Player</th><th>Wins</th></tr></thead>
-        <tbody>
-        {% for name, count in winners %}
-          <tr><td>{{ name or 'Unknown' }}</td><td>{{ count }}</td></tr>
-        {% endfor %}
-        </tbody>
-      </table>
-      {% else %}
-        <p class="muted">No games completed yet.</p>
-      {% endif %}
-    </div>
-    <div class="card">
+
+    <div id="recent_games" class="card">
       <h2>Recent Games</h2>
       {% if recent %}
       <ul>
