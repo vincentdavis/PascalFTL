@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="row">
-  <div class="col">
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+  <div>
     <div class="card">
       <h2>Lobby <span class="pill">Game {{ game.code }}</span></h2>
       <div id="players" hx-get="/fragment/lobby_players?code={{ game.code }}" hx-trigger="load, every 1s" hx-swap="innerHTML">
@@ -10,7 +10,7 @@
       <p class="muted">Invite link: <a class="mono" href="/join/{{ game.code }}">/join/{{ game.code }}</a></p>
     </div>
   </div>
-  <div class="col">
+  <div>
     <div class="card" id="controls"
          hx-get="/fragment/lobby_controls?code={{ game.code }}{% if player %}&player_id={{ player.id }}{% endif %}"
          hx-trigger="load, every 1s"

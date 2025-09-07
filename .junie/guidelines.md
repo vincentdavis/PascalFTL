@@ -57,6 +57,7 @@ How a player can setup a game.
 - Python 3.13+
 - Fastapi backend
 - htmx frontend for page updates
+- tailwindcss for styling. Dev: `npm run tw:dev` (builds from tailwindcss/styles/app.css to app/static/css/tw.css). Prod: `npm run tw:build`.
 - Websockets to stream game updates to the frontend during game play.
 - postgresql database for storing game data. (SQLite is used for development)
 - Pydantic version 2.0.0+

@@ -10,27 +10,27 @@
     <input type="hidden" id="ship_type_id" name="ship_type_id" value="">
 
     <div class="mb-3">
-      <label class="form-label">Choose your ship</label>
-      <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-3">
+      <label class="block text-sm font-medium text-stone-700">Choose your ship</label>
+      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
         {% for s in ship_cards %}
-        <div class="col">
-          <div class="card h-100 ship-card{% if not s.id %} opacity-50{% endif %}" {% if s.id %}tabindex="0" role="button" aria-pressed="false"{% endif %} data-id="{{ s.id }}" data-cost="{{ s.cost }}">
-            <img src="{{ s.image_url }}" class="card-img-top" alt="{{ s.name }}">
-            <div class="card-body">
-              <h5 class="card-title" style="display:flex; justify-content:space-between; align-items:center;">
-                <span>{{ s.name }}</span>
+        <div>
+          <div class="card ship-card h-full {% if not s.id %}opacity-50{% endif %}" {% if s.id %}tabindex="0" role="button" aria-pressed="false"{% endif %} data-id="{{ s.id }}" data-cost="{{ s.cost }}">
+            <img src="{{ s.image_url }}" alt="{{ s.name }}" class="w-full rounded-t-md">
+            <div class="mt-2">
+              <div class="flex items-center justify-between">
+                <span class="font-semibold">{{ s.name }}</span>
                 {% if s.id %}
-                <span class="badge bg-secondary">{{ s.cost }} tokens</span>
+                <span class="pill">{{ s.cost }} tokens</span>
                 {% else %}
-                <span class="badge bg-warning text-dark">Unavailable</span>
+                <span class="pill" style="background:#fbbf24; color:#111827;">Unavailable</span>
                 {% endif %}
-              </h5>
-              <div class="small text-muted">
+              </div>
+              <div class="text-sm muted mt-1">
                 <div>Weight: {{ s.weight }} | Crew: {{ s.crew }}</div>
                 <div>Hull/Shields/Power: {{ s.hull_strength }}/{{ s.shields }}/{{ s.power_capacity }}</div>
                 <div>Space/Capacity: {{ s.space_capacity }}/{{ s.weight_capacity }}</div>
                 <div>Weapons:</div>
-                <ul class="list-unstyled mb-0">
+                <ul class="list-none m-0 p-0">
                   <li>Lasers: {{ s.lasers }}</li>
                   <li>Railguns: {{ s.railguns }}</li>
                   <li>Missiles: {{ s.missiles }}</li>
@@ -42,35 +42,22 @@
           </div>
         </div>
         {% endfor %}
-        {% if ship_cards|length % 2 == 1 %}
-        <div class="col d-none d-sm-block">
-          <div class="card h-100 ship-card placeholder" aria-hidden="true">
-            <div class="card-img-top"></div>
-            <div class="card-body">
-              <h5 class="card-title">&nbsp;</h5>
-              <div class="small text-muted">&nbsp;</div>
-            </div>
-          </div>
-        </div>
-        {% endif %}
       </div>
     </div>
 
     <div class="mb-3">
-      <label class="form-label">Upgrades</label>
-      <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-2">
+      <label class="block text-sm font-medium text-stone-700">Upgrades</label>
+      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
         {% for u in upgrades %}
-        <div class="col">
-          <div class="form-check">
-            <input class="form-check-input" type="checkbox" id="u{{ u.id }}" name="upgrade_ids" value="{{ u.id }}" data-cost="{{ u.cost }}">
-            <label class="form-check-label" for="u{{ u.id }}">{{ u.name }} <span class="muted">({{ u.cost }})</span></label>
-          </div>
-        </div>
+        <label class="flex items-center gap-2">
+          <input class="h-4 w-4 rounded border-stone-500/70 bg-stone-200/60" type="checkbox" id="u{{ u.id }}" name="upgrade_ids" value="{{ u.id }}" data-cost="{{ u.cost }}">
+          <span>{{ u.name }} <span class="muted">({{ u.cost }})</span></span>
+        </label>
         {% endfor %}
       </div>
     </div>
 
-    <div style="margin-top:12px; display:flex; gap:12px; align-items:center; flex-wrap:wrap;">
+    <div class="mt-3 flex flex-wrap items-center gap-3">
       <div class="pill">Estimated cost: <span id="est">0</span> / 100</div>
       <!-- Over-budget warning banner: placed just above the submit button -->
       <div id="over-budget" class="warning-banner" role="alert" aria-live="assertive" style="display:none;">
@@ -91,9 +78,9 @@
   let selectedCost = 0;
 
   function setSelectedCard(card){
-    document.querySelectorAll('.ship-card').forEach(c => c.classList.remove('border-primary', 'shadow'));
+    document.querySelectorAll('.ship-card').forEach(c => c.classList.remove('ring-2', 'ring-amber-600', 'shadow-lg'));
     if (card) {
-      card.classList.add('border-primary', 'shadow');
+      card.classList.add('ring-2', 'ring-amber-600', 'shadow-lg');
       hiddenId.value = card.dataset.id || '';
       selectedCost = parseInt(card.dataset.cost || '0');
     } else {

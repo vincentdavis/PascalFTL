@@ -1,0 +1,42 @@
+@import "tailwindcss";
+
+/* Tailwind v4 source globs: watch templates and optional Python for class names */
+@source "../../app/templates";
+@source "../../app/**/*.py";
+
+/* Base tweaks to preserve background imagery previously in app.css */
+@layer base {
+  body {
+    /* Keep the starfield/ship background without forcing global text color */
+    background-color: white;
+    background-image: url("/templates/images/pascals_ftl_ship_background.png");
+    background-attachment: fixed;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+  }
+  /* Table primitives used across pages */
+  table { @apply w-full border-collapse; }
+  th, td { @apply border-b border-stone-500 px-2 py-2 text-left; }
+}
+
+/* Component aliases that mimic old app.css but are powered by Tailwind */
+@layer components {
+  .card { @apply bg-stone-200/70 border border-stone-500/60 rounded-md p-4 mb-4; }
+  .pill { @apply inline-block rounded-full bg-amber-300 text-stone-900 text-xs px-2 py-0.5; }
+  .muted { @apply text-stone-700; }
+  .log { @apply bg-stone-700 text-white border border-stone-900 rounded-md h-72 overflow-auto p-3 whitespace-pre-wrap; }
+  .ship-card { @apply flex flex-col h-full; }
+  .ship-card .card-body { @apply flex flex-col; }
+  .ship-card.placeholder { @apply border border-dashed border-stone-400 bg-black/5 pointer-events-none opacity-60; }
+
+  /* Buttons */
+  .primary { @apply rounded bg-amber-600 px-3 py-1.5 text-white hover:bg-amber-700; }
+}
+
+/* Utility/animation reimplementation */
+@layer utilities {
+  @keyframes flashPulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
+  .flash { animation: flashPulse 1s ease-in-out infinite; }
+  .warning-banner { @apply bg-red-700 text-white border-2 border-red-900 rounded-lg p-3 my-3 font-black text-xl text-center tracking-wide; }
+}

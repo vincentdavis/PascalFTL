@@ -5,35 +5,29 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>PFTL - Pascal's Faster Than Light</title>
     <script src="https://unpkg.com/htmx.org@1.9.12"></script>
-    <!-- Bootstrap 5 CSS -->
-    <link rel="stylesheet" href="/static/bootstrap_5/css/bootstrap.min.css">
-    <!-- App legacy styles -->
-    <link rel="stylesheet" href="/static/css/app.css">
-    <!-- New Bootstrap theme overrides -->
-    <link rel="stylesheet" href="/static/css/app_v2.css">
+    <!-- Tailwind CSS build from app/static -->
+    <link rel="stylesheet" href="/static/css/tw.css">
 </head>
 <body>
-<header>
-    <div class="brand">
-        <a href="/">
-            <img src="/templates/images/pascals_ftl_logo.png" alt="Pascal's Faster Than Light" style="height:78px; vertical-align:middle; margin-right:8px;" />
-            Pascal's F.T.L.
+<header class="border-b border-stone-500/60 bg-stone-200/70">
+    <div class="mx-auto flex max-w-6xl items-center justify-between gap-3 p-3">
+        <a class="flex items-center gap-2 text-lg font-semibold text-stone-900" href="/">
+            <img src="/templates/images/pascals_ftl_logo.png" alt="Pascal's Faster Than Light" class="h-10 sm:h-12 md:h-14 lg:h-16 w-auto object-contain shrink-0" />
+            <span>Pascal's F.T.L.</span>
         </a>
+        <nav class="flex items-center gap-3">
+            <a class="text-stone-800 hover:text-stone-900" href="/">Home</a>
+            <a class="rounded bg-amber-600 px-3 py-1.5 text-white hover:bg-amber-700" href="/create">Create Game</a>
+            <form class="flex items-center gap-2 m-0" onsubmit="const c=this.elements['code'].value.trim().toUpperCase(); if(c){ window.location.href='/join/'+c; } return false;">
+                <input class="w-36 rounded border border-stone-500/70 bg-stone-200/60 px-2 py-1 text-stone-900" type="text" name="code" placeholder="Game code" maxlength="12" title="Enter game code" />
+                <button class="rounded border border-stone-500/70 bg-stone-300/70 px-3 py-1.5 text-stone-900 hover:bg-amber-600 hover:text-white" type="submit">Join</button>
+            </form>
+        </nav>
     </div>
-    <nav style="display:flex; align-items:center; gap:12px;">
-        <a href="/">Home</a>
-        <a href="/create" class="primary" style="padding:6px 10px;">Create Game</a>
-        <form onsubmit="const c=this.elements['code'].value.trim().toUpperCase(); if(c){ window.location.href='/join/'+c; } return false;" style="display:flex; align-items:center; gap:6px; margin:0;">
-            <input type="text" name="code" placeholder="Game code" maxlength="12" title="Enter game code" style="width:140px;" />
-            <button type="submit" class="primary">Join</button>
-        </form>
-    </nav>
 </header>
-<main>
+<main class="mx-auto my-6 max-w-5xl px-4">
     {% block content %}{% endblock %}
 </main>
-<!-- Bootstrap 5 JS (with Popper) -->
-<script src="/static/bootstrap_5/js/bootstrap.bundle.min.js"></script>
 {% block extra_scripts %}{% endblock %}
 </body>
 </html>

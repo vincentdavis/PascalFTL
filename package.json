@@ -1,0 +1,11 @@
+{
+  "name": "pftl",
+  "private": true,
+  "devDependencies": {
+    "tailwindcss": "^4.1.13"
+  },
+  "scripts": {
+    "tw:dev": "./tailwindcss/node_modules/.bin/tailwindcss -i ./tailwindcss/styles/app.css -o ./app/static/css/tw.css --watch",
+    "tw:build": "./tailwindcss/node_modules/.bin/tailwindcss -i ./tailwindcss/styles/app.css -o ./app/static/css/tw.css --minify"
+  }
+}

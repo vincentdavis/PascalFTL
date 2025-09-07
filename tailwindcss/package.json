@@ -1,0 +1,11 @@
+{
+  "name": "pftl-tailwind",
+  "private": true,
+  "devDependencies": {
+    "tailwindcss": "^4.1.13"
+  },
+  "scripts": {
+    "tw:dev": "cd .. && npm run tw:dev",
+    "tw:build": "cd .. && npm run tw:build"
+  }
+}
