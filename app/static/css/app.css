@@ -206,3 +206,33 @@ td {
 .flash {
     animation: flashPulse 1s ease-in-out infinite;
 }
+
+/* Ship card visual consistency */
+.ship-card {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+.ship-card .card-img-top {
+    height: 160px;
+    object-fit: contain;
+    background: rgba(0,0,0,0.05);
+}
+.ship-card .card-body {
+    display: flex;
+    flex-direction: column;
+}
+.ship-card .card-title {
+    min-height: 1.6em;
+}
+
+/* Placeholder ship card to keep grid balanced when odd count */
+.ship-card.placeholder {
+    border: 1px dashed #a48d7c;
+    background: rgba(0,0,0,0.03);
+    pointer-events: none;
+    opacity: 0.6;
+}
+.ship-card.placeholder .card-img-top {
+    background: transparent;
+}

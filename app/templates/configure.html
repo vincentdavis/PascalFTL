@@ -47,6 +47,17 @@
           </div>
         </div>
         {% endfor %}
+        {% if ship_cards|length % 2 == 1 %}
+        <div class="col d-none d-sm-block">
+          <div class="card h-100 ship-card placeholder" aria-hidden="true">
+            <div class="card-img-top"></div>
+            <div class="card-body">
+              <h5 class="card-title">&nbsp;</h5>
+              <div class="small text-muted">&nbsp;</div>
+            </div>
+          </div>
+        </div>
+        {% endif %}
       </div>
     </div>
 

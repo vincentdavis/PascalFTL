@@ -238,8 +238,8 @@ YAMATO: Ship = Ship(
 )
 
 DEFENDER = Ship(
-    type=ShipType.BATTLESHIP,
-    name=ShipType.BATTLESHIP,
+    type=ShipType.DEFENDER,
+    name=ShipType.DEFENDER,
     price=20,
     weight="heavy",
     weight_capacity=200,
