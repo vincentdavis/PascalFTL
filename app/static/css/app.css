@@ -26,7 +26,7 @@
     --acc: #6c594c;   /* Accent color for links and highlights */
     --bg: #ffffff;    /* Base page background */
     --card: #e7e2da;  /* Card surface */
-    --fg: #6c594c;    /* Primary foreground text color */
+    --fg: #ffffff;    /* Primary foreground text color */
     --muted: #6c594c; /* Muted text tone */
 }
 
@@ -147,14 +147,14 @@ input,
 select,
 button {
     background: #c5a48f;
-    border: 1px solid #2a3a6a;
+    border: 1px solid #736155;
     border-radius: 6px;
     color: var(--fg);
     padding: 8px 10px;
 }
 
 button {
-    background: #153a5a;
+    background: #6c594c;
     cursor: pointer;
 }
 
@@ -172,7 +172,7 @@ table {
 
 th,
 td {
-    border-bottom: 1px solid #24396a;
+    border-bottom: 1px solid #6c594c;
     padding: 8px;
     text-align: left;
 }

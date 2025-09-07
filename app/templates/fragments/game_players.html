@@ -4,9 +4,14 @@
     {% set p = item.player %}
     {% set baseline = item.baseline %}
     <div class="card{% if p.health <= 0 %} danger{% endif %}">
-      <h3>{{ p.name }} {% if p.is_host %}<span class="pill">Host</span>{% endif %}</h3>
-      <p class="muted">{{ p.ship_type.name if p.ship_type else 'Unconfigured' }}</p>
-      <div class="grid" style="grid-template-columns: repeat(2, 1fr); gap: 6px;">
+      <div style="display:flex; align-items:center; gap:8px;">
+        <img src="{{ item.image_url }}" alt="{{ p.ship_type.name if p.ship_type else 'Unconfigured' }}" style="width:36px; height:36px; object-fit:cover; border-radius:4px; box-shadow:0 0 0 1px rgba(0,0,0,0.25);" />
+        <div>
+          <h3 style="margin:0;">{{ p.name }} {% if p.is_host %}<span class="pill">Host</span>{% endif %}</h3>
+          <p class="muted" style="margin:2px 0 0 0;">{{ p.ship_type.name if p.ship_type else 'Unconfigured' }}</p>
+        </div>
+      </div>
+      <div class="grid" style="grid-template-columns: repeat(2, 1fr); gap: 6px; margin-top:8px;">
         <div class="muted">Original</div>
         <div class="muted">Current</div>
         <div>Health (Hull): <strong>{{ baseline.health if baseline else '—' }}</strong></div>

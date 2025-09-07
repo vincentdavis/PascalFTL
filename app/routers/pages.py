@@ -12,8 +12,6 @@ This module defines the web UI flows:
 
 from __future__ import annotations
 
-from typing import List, Optional
-
 from fastapi import APIRouter, Depends, HTTPException, Request, WebSocket, WebSocketDisconnect
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
@@ -31,6 +29,7 @@ router = APIRouter()
 
 # Helpers
 
+
 def _templates(request: Request) -> Jinja2Templates:
     return request.app.state.templates
 
@@ -42,7 +41,7 @@ def _get_game(db: Session, code: str) -> Game:
     return game
 
 
-def _player_stats_from(ship: ShipType, upgrades: List[UpgradeType]) -> dict:
+def _player_stats_from(ship: ShipType, upgrades: list[UpgradeType]) -> dict:
     """Compute player stats from base ship and selected upgrades."""
     d = dict(
         health=ship.base_health,
@@ -73,14 +72,21 @@ async def home(request: Request, db: Session = Depends(get_db)) -> HTMLResponse:
     """Home page with simple leaderboard and create/join options."""
     templates = _templates(request)
     # Last 10 completed games
-    recent = db.execute(
-        select(Game).where(Game.status == GameStatusEnum.COMPLETED).order_by(Game.completed_at.desc()).limit(10)
-    ).scalars().all()
+    recent = (
+        db.execute(
+            select(Game).where(Game.status == GameStatusEnum.COMPLETED).order_by(Game.completed_at.desc()).limit(10)
+        )
+        .scalars()
+        .all()
+    )
 
     # Top winners by count
     winners = db.execute(
-        select(Game.winner_name, func.count(Game.id)).where(Game.status == GameStatusEnum.COMPLETED)
-        .group_by(Game.winner_name).order_by(func.count(Game.id).desc()).limit(5)
+        select(Game.winner_name, func.count(Game.id))
+        .where(Game.status == GameStatusEnum.COMPLETED)
+        .group_by(Game.winner_name)
+        .order_by(func.count(Game.id).desc())
+        .limit(5)
     ).all()
 
     return templates.TemplateResponse(
@@ -158,8 +164,9 @@ async def configure_get(
     upgrades = db.execute(select(UpgradeType).order_by(UpgradeType.name)).scalars().all()
 
     # Build a list of card view models based on ships defined in app.ships
-    from ..ships import SHIPS
     import os
+
+    from ..ships import SHIPS
 
     # Map DB ships by normalized name for id/cost lookup
     db_by_name = {s.name.strip().lower(): s for s in ships_db}
@@ -170,22 +177,26 @@ async def configure_get(
         candidates = []
         base = name.strip()
         # Original, Title, Upper, Lower
-        candidates.extend([
-            f"{base}.png",
-            f"{base.title()}.png",
-            f"{base.upper()}.png",
-            f"{base.lower()}.png",
-        ])
+        candidates.extend(
+            [
+                f"{base}.png",
+                f"{base.title()}.png",
+                f"{base.upper()}.png",
+                f"{base.lower()}.png",
+            ]
+        )
         # Replace underscores with spaces and spaces with underscores, try common variants
         base_spaces = base.replace("_", " ")
         base_unders = base.replace(" ", "_")
         for b in {base_spaces, base_unders}:
-            candidates.extend([
-                f"{b}.png",
-                f"{b.title()}.png",
-                f"{b.upper()}.png",
-                f"{b.lower()}.png",
-            ])
+            candidates.extend(
+                [
+                    f"{b}.png",
+                    f"{b.title()}.png",
+                    f"{b.upper()}.png",
+                    f"{b.lower()}.png",
+                ]
+            )
         # Also try fully uppercased underscored form (our convention)
         candidates.append(base_spaces.upper().replace(" ", "_") + ".png")
         # Deduplicate while preserving order
@@ -295,7 +306,9 @@ async def configure_post(request: Request, db: Session = Depends(get_db)) -> Red
 
 
 @router.get("/lobby/{code}", response_class=HTMLResponse)
-async def lobby(request: Request, code: str, player_id: Optional[int] = None, db: Session = Depends(get_db)) -> HTMLResponse:
+async def lobby(
+    request: Request, code: str, player_id: int | None = None, db: Session = Depends(get_db)
+) -> HTMLResponse:
     templates = _templates(request)
     game = _get_game(db, code)
     player = db.get(GamePlayer, int(player_id)) if player_id else None
@@ -314,7 +327,7 @@ async def lobby_players_fragment(request: Request, code: str, db: Session = Depe
 
 @router.get("/fragment/lobby_controls", response_class=HTMLResponse)
 async def lobby_controls_fragment(
-    request: Request, code: str, player_id: Optional[int] = None, db: Session = Depends(get_db)
+    request: Request, code: str, player_id: int | None = None, db: Session = Depends(get_db)
 ) -> HTMLResponse:
     templates = _templates(request)
     game = _get_game(db, code)
@@ -339,7 +352,9 @@ async def toggle_ready(request: Request, db: Session = Depends(get_db)) -> HTMLR
     db.commit()
 
     templates = _templates(request)
-    return templates.TemplateResponse("fragments/ready_button.html", {"request": request, "player": player, "code": code})
+    return templates.TemplateResponse(
+        "fragments/ready_button.html", {"request": request, "player": player, "code": code}
+    )
 
 
 @router.post("/start/{code}")
@@ -357,6 +372,7 @@ async def start_game(request: Request, code: str, db: Session = Depends(get_db))
         raise HTTPException(status_code=400, detail="All players must be ready")
 
     from datetime import datetime
+
     game.status = GameStatusEnum.ACTIVE
     game.started_at = datetime.utcnow()
     db.commit()
@@ -368,7 +384,9 @@ async def start_game(request: Request, code: str, db: Session = Depends(get_db))
 
 
 @router.get("/game/{code}", response_class=HTMLResponse)
-async def game_page(request: Request, code: str, player_id: Optional[int] = None, db: Session = Depends(get_db)) -> HTMLResponse:
+async def game_page(
+    request: Request, code: str, player_id: int | None = None, db: Session = Depends(get_db)
+) -> HTMLResponse:
     templates = _templates(request)
     game = _get_game(db, code)
     return templates.TemplateResponse("game.html", {"request": request, "game": game, "player_id": player_id})
@@ -376,17 +394,51 @@ async def game_page(request: Request, code: str, player_id: Optional[int] = None
 
 @router.get("/fragment/game_players", response_class=HTMLResponse)
 async def game_players_fragment(request: Request, code: str, db: Session = Depends(get_db)) -> HTMLResponse:
-    """Fragment rendering of the players' ship cards with baseline vs current stats."""
+    """Fragment rendering of the players' ship cards with baseline vs current stats and ship thumbnail."""
     templates = _templates(request)
     game = _get_game(db, code)
-    # Pre-compute baselines per player to avoid complex jinja expressions
+
+    # Helper to resolve a ship image file name similar to configure page logic
+    import os
+
+    def resolve_image_filename(name: str) -> str | None:
+        base_dir = os.path.join(os.path.dirname(__file__), "..", "templates", "images", "ship_images")
+        base = (name or "").strip()
+        candidates = [
+            f"{base}.png",
+            f"{base.title()}.png",
+            f"{base.upper()}.png",
+            f"{base.lower()}.png",
+        ]
+        base_spaces = base.replace("_", " ")
+        base_unders = base.replace(" ", "_")
+        for b in {base_spaces, base_unders}:
+            candidates.extend([f"{b}.png", f"{b.title()}.png", f"{b.upper()}.png", f"{b.lower()}.png"])
+        candidates.append(base_spaces.upper().replace(" ", "_") + ".png")
+        # Dedup
+        seen = set()
+        dedup = []
+        for c in candidates:
+            if c not in seen:
+                seen.add(c)
+                dedup.append(c)
+        for cand in dedup:
+            if os.path.exists(os.path.join(base_dir, cand)):
+                return cand
+        return None
+
+    # Pre-compute baselines and image url per player
     players_data = []
     for p in game.players:
         baseline = None
+        image_url = "/templates/images/pascals_ftl_ship_background.png"
         if p.ship_type:
             upgrades = [pu.upgrade for pu in p.upgrades]
             baseline = _player_stats_from(p.ship_type, upgrades)
-        players_data.append({"player": p, "baseline": baseline})
+            img = resolve_image_filename(p.ship_type.name)
+            if img:
+                image_url = f"/templates/images/ship_images/{img}"
+        players_data.append({"player": p, "baseline": baseline, "image_url": image_url})
     context = {"request": request, "game": game, "players_data": players_data}
     return templates.TemplateResponse("fragments/game_players.html", context)
 
@@ -409,7 +461,9 @@ async def game_ws(websocket: WebSocket, code: str, db: Session = Depends(get_db)
 
 
 @router.get("/fragment/lobby_check", response_class=HTMLResponse)
-async def lobby_check(request: Request, code: str, player_id: Optional[int] = None, db: Session = Depends(get_db)) -> HTMLResponse:
+async def lobby_check(
+    request: Request, code: str, player_id: int | None = None, db: Session = Depends(get_db)
+) -> HTMLResponse:
     """HTMX poll endpoint: when the game becomes ACTIVE, instruct client to redirect to the game page.
 
     HTMX honors the HX-Redirect response header and navigates the browser accordingly.
@@ -437,7 +491,9 @@ async def game_over(request: Request, code: str, db: Session = Depends(get_db)) 
 
 
 @router.get("/fragment/game_actions", response_class=HTMLResponse)
-async def game_actions_fragment(request: Request, code: str, player_id: Optional[int] = None, db: Session = Depends(get_db)) -> HTMLResponse:
+async def game_actions_fragment(
+    request: Request, code: str, player_id: int | None = None, db: Session = Depends(get_db)
+) -> HTMLResponse:
     templates = _templates(request)
     game = _get_game(db, code)
     # Compute available weapons for the current player's ship using app.ships metadata
@@ -454,6 +510,7 @@ async def game_actions_fragment(request: Request, code: str, player_id: Optional
             me = db.get(GamePlayer, int(player_id))
             if me and me.ship_type and me.ship_type.name:
                 from ..ships import SHIPS
+
                 key = me.ship_type.name
                 ship = SHIPS.get(key) or SHIPS.get(key.title()) or SHIPS.get(key.upper())
                 if ship:
@@ -493,6 +550,7 @@ async def action_attack(request: Request, db: Session = Depends(get_db)) -> HTML
 
     # Resolve attack with weapon flavor
     import random
+
     weapon_names = {
         "lasers": "Lasers",
         "railguns": "Railguns",
@@ -543,6 +601,7 @@ async def action_attack(request: Request, db: Session = Depends(get_db)) -> HTML
     alive = [p for p in game.players if p.health > 0]
     if len(alive) <= 1:
         from datetime import datetime
+
         game.status = GameStatusEnum.COMPLETED
         if alive:
             game.winner_name = alive[0].name
@@ -560,25 +619,35 @@ async def action_attack(request: Request, db: Session = Depends(get_db)) -> HTML
                 if gp.shields < max_shields and gp.power > 0:
                     # Regen rate: 20% of current power, at least 1
                     import math
+
                     regen = max(1, math.ceil(gp.power * 0.2))
                     new_val = min(max_shields, gp.shields + regen)
                     gained = new_val - gp.shields
                     if gained > 0:
                         gp.shields = new_val
-                        await manager.broadcast(code, f"{gp.name}'s shields regenerate by {gained} (→ {gp.shields}/{max_shields}).\n")
+                        await manager.broadcast(
+                            code, f"{gp.name}'s shields regenerate by {gained} (→ {gp.shields}/{max_shields}).\n"
+                        )
     db.commit()
     # After committing state changes, send a lightweight refresh ping if game continues
     if game.status == GameStatusEnum.ACTIVE:
-        await manager.broadcast(code, "__REFRESH__")
+        await manager.broadcast(code, "...")
 
     # Recompute available weapons for the fragment
     available_weapons = []
     try:
         if attacker and attacker.ship_type and attacker.ship_type.name:
             from ..ships import SHIPS
+
             key = attacker.ship_type.name
             ship = SHIPS.get(key) or SHIPS.get(key.title()) or SHIPS.get(key.upper())
-            labels = {"lasers": "Lasers", "railguns": "Railguns", "missiles": "Missiles", "nuclear_weapons": "Nuclear", "emp": "EMP"}
+            labels = {
+                "lasers": "Lasers",
+                "railguns": "Railguns",
+                "missiles": "Missiles",
+                "nuclear_weapons": "Nuclear",
+                "emp": "EMP",
+            }
             if ship:
                 for k in ["lasers", "railguns", "missiles", "nuclear_weapons", "emp"]:
                     if getattr(ship, k, 0) > 0:
@@ -614,16 +683,19 @@ async def action_skip(request: Request, db: Session = Depends(get_db)) -> HTMLRe
             max_shields = baseline.get("shields", gp.shields)
             if gp.shields < max_shields and gp.power > 0:
                 import math
+
                 regen = max(1, math.ceil(gp.power * 0.2))
                 new_val = min(max_shields, gp.shields + regen)
                 gained = new_val - gp.shields
                 if gained > 0:
                     gp.shields = new_val
-                    await manager.broadcast(code, f"{gp.name}'s shields regenerate by {gained} (→ {gp.shields}/{max_shields}).\n")
+                    await manager.broadcast(
+                        code, f"{gp.name}'s shields regenerate by {gained} (→ {gp.shields}/{max_shields}).\n"
+                    )
     db.commit()
     # After committing state changes, send a lightweight refresh ping
     if game.status == GameStatusEnum.ACTIVE:
-        await manager.broadcast(code, "__REFRESH__")
+        await manager.broadcast(code, "...")
 
     templates = _templates(request)
     # Recompute available weapons for the fragment
@@ -631,13 +703,23 @@ async def action_skip(request: Request, db: Session = Depends(get_db)) -> HTMLRe
     try:
         if player and player.ship_type and player.ship_type.name:
             from ..ships import SHIPS
+
             key = player.ship_type.name
             ship = SHIPS.get(key) or SHIPS.get(key.title()) or SHIPS.get(key.upper())
-            labels = {"lasers": "Lasers", "railguns": "Railguns", "missiles": "Missiles", "nuclear_weapons": "Nuclear", "emp": "EMP"}
+            labels = {
+                "lasers": "Lasers",
+                "railguns": "Railguns",
+                "missiles": "Missiles",
+                "nuclear_weapons": "Nuclear",
+                "emp": "EMP",
+            }
             if ship:
                 for k in ["lasers", "railguns", "missiles", "nuclear_weapons", "emp"]:
                     if getattr(ship, k, 0) > 0:
                         available_weapons.append({"key": k, "label": labels[k]})
     except Exception:
         pass
-    return templates.TemplateResponse("fragments/game_actions.html", {"request": request, "game": game, "player_id": player_id, "available_weapons": available_weapons})
+    return templates.TemplateResponse(
+        "fragments/game_actions.html",
+        {"request": request, "game": game, "player_id": player_id, "available_weapons": available_weapons},
+    )

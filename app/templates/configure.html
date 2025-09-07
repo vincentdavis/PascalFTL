@@ -4,11 +4,6 @@
   <h2>Configure Your Ship <span class="pill">Game {{ game.code }}</span></h2>
   <p class="muted">Budget: 100 tokens. Choose a ship and optional upgrades. Server validates costs.</p>
 
-  <!-- Over-budget warning banner -->
-  <div id="over-budget" class="warning-banner" role="alert" aria-live="assertive" style="display:none;">
-    YOU HAVE SPENT TOO MUCH
-  </div>
-
   <form method="post" action="/configure" id="config-form">
     <input type="hidden" name="code" value="{{ game.code }}">
     <input type="hidden" name="player_id" value="{{ player.id }}">
@@ -77,6 +72,10 @@
 
     <div style="margin-top:12px; display:flex; gap:12px; align-items:center; flex-wrap:wrap;">
       <div class="pill">Estimated cost: <span id="est">0</span> / 100</div>
+      <!-- Over-budget warning banner: placed just above the submit button -->
+      <div id="over-budget" class="warning-banner" role="alert" aria-live="assertive" style="display:none;">
+        YOU HAVE SPENT TOO MUCH
+      </div>
       <button type="submit" class="primary">Save &amp; Go to Lobby</button>
       <a class="pill" href="/join/{{ game.code }}">Invite link or code: {{ game.code }}</a>
     </div>

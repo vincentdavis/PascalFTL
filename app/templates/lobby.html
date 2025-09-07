@@ -3,7 +3,7 @@
 <div class="row">
   <div class="col">
     <div class="card">
-      <h2>Waiting Room <span class="pill">Game {{ game.code }}</span></h2>
+      <h2>Lobby <span class="pill">Game {{ game.code }}</span></h2>
       <div id="players" hx-get="/fragment/lobby_players?code={{ game.code }}" hx-trigger="load, every 1s" hx-swap="innerHTML">
         <!-- players table injected here -->
       </div>
