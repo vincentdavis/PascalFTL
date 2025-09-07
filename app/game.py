@@ -9,13 +9,12 @@ from __future__ import annotations
 import asyncio
 import random
 from dataclasses import dataclass
-from typing import Dict, List, Set
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from .db import db_session
-from .models import Game, GamePlayer, GameStatusEnum, PlayerUpgrade, UpgradeType
+from .models import Game, GameStatusEnum
 
 
 @dataclass
@@ -43,8 +42,8 @@ class GameManager:
     """Manages websocket connections and runs simulations per game."""
 
     def __init__(self) -> None:
-        self._connections: Dict[str, Set[asyncio.Queue[str]]] = {}
-        self._running: Dict[str, asyncio.Task] = {}
+        self._connections: dict[str, set[asyncio.Queue[str]]] = {}
+        self._running: dict[str, asyncio.Task] = {}
         self._lock = asyncio.Lock()
 
     async def connect(self, code: str) -> asyncio.Queue[str]:
@@ -140,13 +139,14 @@ class GameManager:
                 await self.broadcast(code, f"Winner: {winner.name}!\n")
                 # Persist winner using a fresh session
                 from datetime import datetime
+
                 with db_session() as s:
                     game = s.execute(select(Game).where(Game.code == code)).scalar_one_or_none()
                     if game:
                         game.status = GameStatusEnum.COMPLETED
                         game.winner_name = winner.name
                         game.completed_at = datetime.utcnow()
-            
+
         finally:
             # Close out
             await self.broadcast(code, "__END__")

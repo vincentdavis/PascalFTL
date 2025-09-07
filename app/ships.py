@@ -18,8 +18,8 @@ class ShipType(str):
     DESTROYER = "Destroyer"
     FLYING_SAUCERS = "Flying Saucers"
     CRUISER = "Cruiser"
-    STARDESTROYER = "Star Destroyer"
-    STARFIGHTER = "Starfighter"
+    STAR_DESTROYER = "Star Destroyer"
+    STAR_FIGHTER = "Star Fighter"
     SERAPH = "Seraph"
     YAMATO = "Yamato"
     DEFENDER = "Defender"
@@ -149,9 +149,9 @@ CRUISER: Ship = Ship(
     emp=10,
 )
 
-STARDESTROYER: Ship = Ship(
-    type=ShipType.STARDESTROYER,
-    name=ShipType.STARDESTROYER,
+STAR_DESTROYER: Ship = Ship(
+    type=ShipType.STAR_DESTROYER,
+    name=ShipType.STAR_DESTROYER,
     price=30,
     weight="super-heavy",
     weight_capacity=300,
@@ -171,9 +171,9 @@ STARDESTROYER: Ship = Ship(
     emp=10,
 )
 
-STARFIGHTER: Ship = Ship(
-    type=ShipType.STARFIGHTER,
-    name=ShipType.STARFIGHTER,
+STAR_FIGHTER: Ship = Ship(
+    type=ShipType.STAR_FIGHTER,
+    name=ShipType.STAR_FIGHTER,
     price=10,
     weight="light",
     weight_capacity=80,
@@ -265,8 +265,8 @@ SHIPS = {
     ShipType.DESTROYER: DESTROYER,
     ShipType.FLYING_SAUCERS: FLYING_SAUCERS,
     ShipType.CRUISER: CRUISER,
-    ShipType.STARDESTROYER: STARDESTROYER,
-    ShipType.STARFIGHTER: STARFIGHTER,
+    ShipType.STAR_DESTROYER: STAR_DESTROYER,
+    ShipType.STAR_FIGHTER: STAR_FIGHTER,
     ShipType.SERAPH: SERAPH,
     ShipType.YAMATO: YAMATO,
     ShipType.DEFENDER: DEFENDER,
@@ -279,10 +279,7 @@ __all__ = [
     "DESTROYER",
     "FLYING_SAUCERS",
     "SERAPH",
-    "SHIPS",
-    "STARDESTROYER",
-    "STARFIGHTER",
+    "STAR_DESTROYER",
+    "STAR_FIGHTER",
     "YAMATO",
-    "Ship",
-    "ShipType",
 ]

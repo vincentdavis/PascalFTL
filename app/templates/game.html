@@ -31,6 +31,10 @@
       <h3>Battle Log</h3>
       <div id="log" class="log"></div>
       <div id="status" class="muted" style="margin-top:8px;">Connecting...</div>
+      <div id="actions"
+           hx-get="/fragment/game_actions?code={{ game.code }}{% if player_id %}&player_id={{ player_id }}{% endif %}"
+           hx-trigger="load"
+           hx-swap="outerHTML"></div>
       <div style="margin-top:8px;">
         <a class="pill" href="/game_over/{{ game.code }}">Go to Game Over</a>
       </div>
@@ -55,6 +59,11 @@
       return;
     }
     append(ev.data);
+    // After any broadcast, refresh the action controls fragment to reflect turn/state
+    const actions = document.getElementById('actions');
+    if (actions) {
+      htmx.ajax('GET', `/fragment/game_actions?code=${code}{% if player_id %}&player_id={{ player_id }}{% endif %}`, {target: '#actions', swap: 'outerHTML'});
+    }
   };
   ws.onclose = () => { status.textContent = 'Disconnected'; };
 })();

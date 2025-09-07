@@ -176,15 +176,26 @@ async def configure_get(
             f"{base.upper()}.png",
             f"{base.lower()}.png",
         ])
-        # Also try replacing underscores with spaces
-        base2 = base.replace("_", " ")
-        candidates.extend([
-            f"{base2}.png",
-            f"{base2.title()}.png",
-            f"{base2.upper()}.png",
-            f"{base2.lower()}.png",
-        ])
-        for cand in candidates:
+        # Replace underscores with spaces and spaces with underscores, try common variants
+        base_spaces = base.replace("_", " ")
+        base_unders = base.replace(" ", "_")
+        for b in {base_spaces, base_unders}:
+            candidates.extend([
+                f"{b}.png",
+                f"{b.title()}.png",
+                f"{b.upper()}.png",
+                f"{b.lower()}.png",
+            ])
+        # Also try fully uppercased underscored form (our convention)
+        candidates.append(base_spaces.upper().replace(" ", "_") + ".png")
+        # Deduplicate while preserving order
+        seen = set()
+        dedup = []
+        for c in candidates:
+            if c not in seen:
+                seen.add(c)
+                dedup.append(c)
+        for cand in dedup:
             p = os.path.join(base_dir, cand)
             if os.path.exists(p):
                 return cand
@@ -349,9 +360,9 @@ async def start_game(request: Request, code: str, db: Session = Depends(get_db))
     game.started_at = datetime.utcnow()
     db.commit()
 
-    # Start sim (fire and forget)
-    await manager.run_battle(db, code)
-
+    # Initialize manual turn-based game (no auto-sim)
+    # Set the first turn to the host by convention; clients will render controls accordingly.
+    # For now we just redirect to the game page; actions are performed via manual controls.
     return RedirectResponse(url=f"/game/{code}?player_id={player_id}", status_code=303)
 
 
@@ -379,6 +390,24 @@ async def game_ws(websocket: WebSocket, code: str, db: Session = Depends(get_db)
         await websocket.close()
 
 
+@router.get("/fragment/lobby_check", response_class=HTMLResponse)
+async def lobby_check(request: Request, code: str, player_id: Optional[int] = None, db: Session = Depends(get_db)) -> HTMLResponse:
+    """HTMX poll endpoint: when the game becomes ACTIVE, instruct client to redirect to the game page.
+
+    HTMX honors the HX-Redirect response header and navigates the browser accordingly.
+    We include player_id in the redirect if available so the game page can keep player context.
+    """
+    game = _get_game(db, code)
+    if game.status == GameStatusEnum.ACTIVE:
+        dest = f"/game/{code}"
+        if player_id:
+            dest += f"?player_id={int(player_id)}"
+        # Return an empty body but set HX-Redirect so HTMX will navigate
+        return HTMLResponse(content="", headers={"HX-Redirect": dest})
+    # No redirect; return a tiny no-op
+    return HTMLResponse("")
+
+
 @router.get("/game_over/{code}", response_class=HTMLResponse)
 async def game_over(request: Request, code: str, db: Session = Depends(get_db)) -> HTMLResponse:
     templates = _templates(request)
@@ -387,3 +416,85 @@ async def game_over(request: Request, code: str, db: Session = Depends(get_db)) 
         # If not completed, redirect to game page
         return RedirectResponse(url=f"/game/{code}", status_code=303)
     return templates.TemplateResponse("game_over.html", {"request": request, "game": game})
+
+
+@router.get("/fragment/game_actions", response_class=HTMLResponse)
+async def game_actions_fragment(request: Request, code: str, player_id: Optional[int] = None, db: Session = Depends(get_db)) -> HTMLResponse:
+    templates = _templates(request)
+    game = _get_game(db, code)
+    return templates.TemplateResponse("fragments/game_actions.html", {"request": request, "game": game, "player_id": player_id})
+
+
+@router.post("/action/attack", response_class=HTMLResponse)
+async def action_attack(request: Request, db: Session = Depends(get_db)) -> HTMLResponse:
+    form = await request.form()
+    code = str(form.get("code"))
+    attacker_id = int(form.get("player_id"))
+    target_id = int(form.get("target_id"))
+
+    game = _get_game(db, code)
+    attacker = db.get(GamePlayer, attacker_id)
+    target = db.get(GamePlayer, target_id)
+    if not attacker or attacker.game_id != game.id:
+        raise HTTPException(status_code=404, detail="Attacker not found")
+    if not target or target.game_id != game.id:
+        raise HTTPException(status_code=404, detail="Target not found")
+    if game.status != GameStatusEnum.ACTIVE:
+        raise HTTPException(status_code=400, detail="Game not active")
+    if attacker.health <= 0:
+        raise HTTPException(status_code=400, detail="You are destroyed")
+    if target.health <= 0:
+        raise HTTPException(status_code=400, detail="Target already destroyed")
+
+    # Resolve attack similar to simulator
+    import random
+    miss_chance = min(60, max(5, 20 + (target.speed - attacker.speed) // 2))
+    if random.randint(1, 100) <= miss_chance:
+        await manager.broadcast(code, f"{attacker.name} missed {target.name}!\n")
+    else:
+        base = attacker.weapons + attacker.power // 2 + (attacker.ship_type.base_crew if attacker.ship_type else 1)
+        dmg = max(5, int(base * random.uniform(0.6, 1.1)))
+        if target.shields > 0:
+            absorbed = min(target.shields, dmg)
+            target.shields -= absorbed
+            dmg -= absorbed
+            await manager.broadcast(code, f"{attacker.name} hits {target.name}'s shields for {absorbed}.\n")
+        if dmg > 0:
+            target.health -= dmg
+            await manager.broadcast(code, f"{attacker.name} deals {dmg} hull damage to {target.name}.\n")
+        if target.health <= 0:
+            await manager.broadcast(code, f"{target.name} has been destroyed!\n")
+
+    # Check win condition
+    alive = [p for p in game.players if p.health > 0]
+    if len(alive) <= 1:
+        from datetime import datetime
+        game.status = GameStatusEnum.COMPLETED
+        if alive:
+            game.winner_name = alive[0].name
+            await manager.broadcast(code, f"Winner: {alive[0].name}!\n")
+        game.completed_at = datetime.utcnow()
+        await manager.broadcast(code, "__END__")
+    db.commit()
+
+    templates = _templates(request)
+    return templates.TemplateResponse("fragments/game_actions.html", {"request": request, "game": game, "player_id": attacker_id})
+
+
+@router.post("/action/skip", response_class=HTMLResponse)
+async def action_skip(request: Request, db: Session = Depends(get_db)) -> HTMLResponse:
+    form = await request.form()
+    code = str(form.get("code"))
+    player_id = int(form.get("player_id"))
+    game = _get_game(db, code)
+    player = db.get(GamePlayer, player_id)
+    if not player or player.game_id != game.id:
+        raise HTTPException(status_code=404, detail="Player not found")
+    if game.status != GameStatusEnum.ACTIVE:
+        raise HTTPException(status_code=400, detail="Game not active")
+
+    await manager.broadcast(code, f"{player.name} skipped their turn.\n")
+    db.commit()
+
+    templates = _templates(request)
+    return templates.TemplateResponse("fragments/game_actions.html", {"request": request, "game": game, "player_id": player_id})

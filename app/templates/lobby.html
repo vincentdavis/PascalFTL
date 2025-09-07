@@ -19,4 +19,11 @@
     </div>
   </div>
 </div>
+
+<!-- Hidden poller to redirect everyone to the game page once it starts -->
+<div
+  hx-get="/fragment/lobby_check?code={{ game.code }}{% if player %}&player_id={{ player.id }}{% endif %}"
+  hx-trigger="load, every 1s"
+  hx-swap="none">
+</div>
 {% endblock %}

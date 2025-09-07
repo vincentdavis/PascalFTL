@@ -1,0 +1,32 @@
+<div id="actions">
+  {% set me = (game.players | selectattr('id', 'equalto', player_id|int) | list) %}
+  {% if me|length == 0 %}
+    <p class="muted">Join this game to take actions.</p>
+  {% elif game.status != 'active' %}
+    <p class="muted">Game not active.</p>
+  {% else %}
+    {% set mep = me[0] %}
+    <h4>Your Turn</h4>
+    <form method="post" action="/action/attack" hx-post="/action/attack" hx-target="#actions" hx-swap="outerHTML">
+      <input type="hidden" name="code" value="{{ game.code }}">
+      <input type="hidden" name="player_id" value="{{ player_id }}">
+      <label>Attack target:
+        <select name="target_id">
+          {% for p in game.players if p.id != player_id and p.health > 0 %}
+            <option value="{{ p.id }}">{{ p.name }} (HP {{ p.health }}, SH {{ p.shields }})</option>
+          {% endfor %}
+        </select>
+      </label>
+      {% if mep.health <= 0 %}
+      <button type="button" class="primary" disabled>Attack</button>
+      {% else %}
+      <button type="submit" class="primary">Attack</button>
+      {% endif %}
+    </form>
+    <form method="post" action="/action/skip" hx-post="/action/skip" hx-target="#actions" hx-swap="outerHTML" style="margin-top:6px;">
+      <input type="hidden" name="code" value="{{ game.code }}">
+      <input type="hidden" name="player_id" value="{{ player_id }}">
+      <button type="submit">Skip Turn</button>
+    </form>
+  {% endif %}
+</div>
