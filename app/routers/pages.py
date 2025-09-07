@@ -217,7 +217,8 @@ async def configure_get(
             {
                 "name": nm,
                 "id": db_ship.id if db_ship else None,
-                "cost": ship.price,
+                # Use DB-defined cost so frontend estimate matches backend validation
+                "cost": (db_ship.cost if db_ship else ship.price),
                 "image_url": image_url,
                 "weight": ship.weight,
                 "weight_capacity": ship.weight_capacity,
@@ -373,6 +374,23 @@ async def game_page(request: Request, code: str, player_id: Optional[int] = None
     return templates.TemplateResponse("game.html", {"request": request, "game": game, "player_id": player_id})
 
 
+@router.get("/fragment/game_players", response_class=HTMLResponse)
+async def game_players_fragment(request: Request, code: str, db: Session = Depends(get_db)) -> HTMLResponse:
+    """Fragment rendering of the players' ship cards with baseline vs current stats."""
+    templates = _templates(request)
+    game = _get_game(db, code)
+    # Pre-compute baselines per player to avoid complex jinja expressions
+    players_data = []
+    for p in game.players:
+        baseline = None
+        if p.ship_type:
+            upgrades = [pu.upgrade for pu in p.upgrades]
+            baseline = _player_stats_from(p.ship_type, upgrades)
+        players_data.append({"player": p, "baseline": baseline})
+    context = {"request": request, "game": game, "players_data": players_data}
+    return templates.TemplateResponse("fragments/game_players.html", context)
+
+
 @router.websocket("/ws/{code}")
 async def game_ws(websocket: WebSocket, code: str, db: Session = Depends(get_db)) -> None:
     await websocket.accept()
@@ -422,7 +440,33 @@ async def game_over(request: Request, code: str, db: Session = Depends(get_db)) 
 async def game_actions_fragment(request: Request, code: str, player_id: Optional[int] = None, db: Session = Depends(get_db)) -> HTMLResponse:
     templates = _templates(request)
     game = _get_game(db, code)
-    return templates.TemplateResponse("fragments/game_actions.html", {"request": request, "game": game, "player_id": player_id})
+    # Compute available weapons for the current player's ship using app.ships metadata
+    available_weapons = []
+    weapon_labels = {
+        "lasers": "Lasers",
+        "railguns": "Railguns",
+        "missiles": "Missiles",
+        "nuclear_weapons": "Nuclear",
+        "emp": "EMP",
+    }
+    try:
+        if player_id:
+            me = db.get(GamePlayer, int(player_id))
+            if me and me.ship_type and me.ship_type.name:
+                from ..ships import SHIPS
+                key = me.ship_type.name
+                ship = SHIPS.get(key) or SHIPS.get(key.title()) or SHIPS.get(key.upper())
+                if ship:
+                    for k in ["lasers", "railguns", "missiles", "nuclear_weapons", "emp"]:
+                        if getattr(ship, k, 0) > 0:
+                            available_weapons.append({"key": k, "label": weapon_labels[k]})
+    except Exception:
+        # Best-effort; fallback to lasers only if any error
+        available_weapons = [{"key": "lasers", "label": weapon_labels["lasers"]}]
+    return templates.TemplateResponse(
+        "fragments/game_actions.html",
+        {"request": request, "game": game, "player_id": player_id, "available_weapons": available_weapons},
+    )
 
 
 @router.post("/action/attack", response_class=HTMLResponse)
@@ -431,6 +475,7 @@ async def action_attack(request: Request, db: Session = Depends(get_db)) -> HTML
     code = str(form.get("code"))
     attacker_id = int(form.get("player_id"))
     target_id = int(form.get("target_id"))
+    weapon = (form.get("weapon") or "lasers").strip()
 
     game = _get_game(db, code)
     attacker = db.get(GamePlayer, attacker_id)
@@ -446,19 +491,48 @@ async def action_attack(request: Request, db: Session = Depends(get_db)) -> HTML
     if target.health <= 0:
         raise HTTPException(status_code=400, detail="Target already destroyed")
 
-    # Resolve attack similar to simulator
+    # Resolve attack with weapon flavor
     import random
+    weapon_names = {
+        "lasers": "Lasers",
+        "railguns": "Railguns",
+        "missiles": "Missiles",
+        "nuclear_weapons": "Nuclear",
+        "emp": "EMP",
+    }
+    await manager.broadcast(code, f"{attacker.name} attacks {target.name} with {weapon_names.get(weapon, 'Lasers')}.\n")
+
     miss_chance = min(60, max(5, 20 + (target.speed - attacker.speed) // 2))
     if random.randint(1, 100) <= miss_chance:
         await manager.broadcast(code, f"{attacker.name} missed {target.name}!\n")
     else:
         base = attacker.weapons + attacker.power // 2 + (attacker.ship_type.base_crew if attacker.ship_type else 1)
-        dmg = max(5, int(base * random.uniform(0.6, 1.1)))
-        if target.shields > 0:
-            absorbed = min(target.shields, dmg)
-            target.shields -= absorbed
-            dmg -= absorbed
-            await manager.broadcast(code, f"{attacker.name} hits {target.name}'s shields for {absorbed}.\n")
+        # Simple multipliers per weapon type
+        mult = {
+            "lasers": 1.00,
+            "railguns": 1.15,
+            "missiles": 1.25,
+            "nuclear_weapons": 1.60,
+            "emp": 0.60,
+        }.get(weapon, 1.0)
+        if weapon == "emp":
+            # EMP primarily drains shields; minimal hull damage if shields are down
+            if target.shields > 0:
+                drain = max(5, int(base * 1.2))
+                absorbed = min(target.shields, drain)
+                target.shields -= absorbed
+                await manager.broadcast(code, f"EMP drains {absorbed} shields from {target.name}.\n")
+                dmg = 0
+            else:
+                dmg = 5
+        else:
+            dmg = max(5, int(base * mult * random.uniform(0.6, 1.1)))
+            if target.shields > 0:
+                # New rule: while shields > 0, ALL damage is absorbed by shields; no spillover to hull
+                absorbed = min(target.shields, dmg)
+                target.shields -= absorbed
+                await manager.broadcast(code, f"{attacker.name} hits {target.name}'s shields for {absorbed}.\n")
+                dmg = 0
         if dmg > 0:
             target.health -= dmg
             await manager.broadcast(code, f"{attacker.name} deals {dmg} hull damage to {target.name}.\n")
@@ -475,10 +549,48 @@ async def action_attack(request: Request, db: Session = Depends(get_db)) -> HTML
             await manager.broadcast(code, f"Winner: {alive[0].name}!\n")
         game.completed_at = datetime.utcnow()
         await manager.broadcast(code, "__END__")
+    else:
+        # Shields regeneration step: after each action, regenerate shields for all alive players based on power
+        for gp in game.players:
+            if gp.health > 0 and gp.ship_type:
+                # Compute baseline max shields with upgrades
+                upgrades = [pu.upgrade for pu in gp.upgrades]
+                baseline = _player_stats_from(gp.ship_type, upgrades)
+                max_shields = baseline.get("shields", gp.shields)
+                if gp.shields < max_shields and gp.power > 0:
+                    # Regen rate: 20% of current power, at least 1
+                    import math
+                    regen = max(1, math.ceil(gp.power * 0.2))
+                    new_val = min(max_shields, gp.shields + regen)
+                    gained = new_val - gp.shields
+                    if gained > 0:
+                        gp.shields = new_val
+                        await manager.broadcast(code, f"{gp.name}'s shields regenerate by {gained} (→ {gp.shields}/{max_shields}).\n")
     db.commit()
+    # After committing state changes, send a lightweight refresh ping if game continues
+    if game.status == GameStatusEnum.ACTIVE:
+        await manager.broadcast(code, "__REFRESH__")
+
+    # Recompute available weapons for the fragment
+    available_weapons = []
+    try:
+        if attacker and attacker.ship_type and attacker.ship_type.name:
+            from ..ships import SHIPS
+            key = attacker.ship_type.name
+            ship = SHIPS.get(key) or SHIPS.get(key.title()) or SHIPS.get(key.upper())
+            labels = {"lasers": "Lasers", "railguns": "Railguns", "missiles": "Missiles", "nuclear_weapons": "Nuclear", "emp": "EMP"}
+            if ship:
+                for k in ["lasers", "railguns", "missiles", "nuclear_weapons", "emp"]:
+                    if getattr(ship, k, 0) > 0:
+                        available_weapons.append({"key": k, "label": labels[k]})
+    except Exception:
+        pass
 
     templates = _templates(request)
-    return templates.TemplateResponse("fragments/game_actions.html", {"request": request, "game": game, "player_id": attacker_id})
+    return templates.TemplateResponse(
+        "fragments/game_actions.html",
+        {"request": request, "game": game, "player_id": attacker_id, "available_weapons": available_weapons},
+    )
 
 
 @router.post("/action/skip", response_class=HTMLResponse)
@@ -494,7 +606,38 @@ async def action_skip(request: Request, db: Session = Depends(get_db)) -> HTMLRe
         raise HTTPException(status_code=400, detail="Game not active")
 
     await manager.broadcast(code, f"{player.name} skipped their turn.\n")
+    # Shields regeneration after a turn passes
+    for gp in game.players:
+        if gp.health > 0 and gp.ship_type:
+            upgrades = [pu.upgrade for pu in gp.upgrades]
+            baseline = _player_stats_from(gp.ship_type, upgrades)
+            max_shields = baseline.get("shields", gp.shields)
+            if gp.shields < max_shields and gp.power > 0:
+                import math
+                regen = max(1, math.ceil(gp.power * 0.2))
+                new_val = min(max_shields, gp.shields + regen)
+                gained = new_val - gp.shields
+                if gained > 0:
+                    gp.shields = new_val
+                    await manager.broadcast(code, f"{gp.name}'s shields regenerate by {gained} (→ {gp.shields}/{max_shields}).\n")
     db.commit()
+    # After committing state changes, send a lightweight refresh ping
+    if game.status == GameStatusEnum.ACTIVE:
+        await manager.broadcast(code, "__REFRESH__")
 
     templates = _templates(request)
-    return templates.TemplateResponse("fragments/game_actions.html", {"request": request, "game": game, "player_id": player_id})
+    # Recompute available weapons for the fragment
+    available_weapons = []
+    try:
+        if player and player.ship_type and player.ship_type.name:
+            from ..ships import SHIPS
+            key = player.ship_type.name
+            ship = SHIPS.get(key) or SHIPS.get(key.title()) or SHIPS.get(key.upper())
+            labels = {"lasers": "Lasers", "railguns": "Railguns", "missiles": "Missiles", "nuclear_weapons": "Nuclear", "emp": "EMP"}
+            if ship:
+                for k in ["lasers", "railguns", "missiles", "nuclear_weapons", "emp"]:
+                    if getattr(ship, k, 0) > 0:
+                        available_weapons.append({"key": k, "label": labels[k]})
+    except Exception:
+        pass
+    return templates.TemplateResponse("fragments/game_actions.html", {"request": request, "game": game, "player_id": player_id, "available_weapons": available_weapons})

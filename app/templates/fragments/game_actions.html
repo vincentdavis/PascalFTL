@@ -17,11 +17,22 @@
           {% endfor %}
         </select>
       </label>
-      {% if mep.health <= 0 %}
-      <button type="button" class="primary" disabled>Attack</button>
-      {% else %}
-      <button type="submit" class="primary">Attack</button>
-      {% endif %}
+      <div style="margin-top:6px;">
+        <span class="muted">Attack with:</span>
+        {% if mep.health > 0 %}
+        <div class="grid" style="grid-template-columns: repeat(5, auto); gap: 6px;">
+          {% if available_weapons and available_weapons|length > 0 %}
+            {% for w in available_weapons %}
+              <button type="submit" name="weapon" value="{{ w.key }}" class="secondary">Fire {{ w.label }}</button>
+            {% endfor %}
+          {% else %}
+            <button type="submit" name="weapon" value="lasers" class="secondary">Fire Lasers</button>
+          {% endif %}
+        </div>
+        {% else %}
+          <div class="muted">You are destroyed and cannot attack.</div>
+        {% endif %}
+      </div>
     </form>
     <form method="post" action="/action/skip" hx-post="/action/skip" hx-target="#actions" hx-swap="outerHTML" style="margin-top:6px;">
       <input type="hidden" name="code" value="{{ game.code }}">

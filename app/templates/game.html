@@ -4,25 +4,11 @@
   <div class="col">
     <div class="card">
       <h2>Game <span class="pill">{{ game.code }}</span></h2>
-      <div class="grid">
-        {% for p in game.players %}
-        <div class="card">
-          <h3>{{ p.name }} {% if p.is_host %}<span class="pill">Host</span>{% endif %}</h3>
-          <p class="muted">{{ p.ship_type.name if p.ship_type else 'Unconfigured' }}</p>
-          <div class="grid">
-            <div>Health: <strong>{{ p.health }}</strong></div>
-            <div>Shields: <strong>{{ p.shields }}</strong></div>
-            <div>Power: <strong>{{ p.power }}</strong></div>
-            <div>Speed: <strong>{{ p.speed }}</strong></div>
-            <div>Fuel: <strong>{{ p.fuel }}</strong></div>
-            <div>Weapons: <strong>{{ p.weapons }}</strong></div>
-            <div>Crew: <strong>{{ p.ship_type.base_crew if p.ship_type else 0 }}</strong></div>
-            <div>Cargo Cap: <strong>{{ p.cargo_capacity }}</strong></div>
-            <div>Cargo Space: <strong>{{ p.cargo_space }}</strong></div>
-            <div>Tokens Left: <strong>{{ p.tokens }}</strong></div>
-          </div>
-        </div>
-        {% endfor %}
+      <div id="players"
+           hx-get="/fragment/game_players?code={{ game.code }}"
+           hx-trigger="load"
+           hx-swap="outerHTML">
+        <!-- players fragment will load here -->
       </div>
     </div>
   </div>
@@ -63,6 +49,10 @@
     const actions = document.getElementById('actions');
     if (actions) {
       htmx.ajax('GET', `/fragment/game_actions?code=${code}{% if player_id %}&player_id={{ player_id }}{% endif %}`, {target: '#actions', swap: 'outerHTML'});
+    }
+    const players = document.getElementById('players');
+    if (players) {
+      htmx.ajax('GET', `/fragment/game_players?code=${code}`, {target: '#players', swap: 'outerHTML'});
     }
   };
   ws.onclose = () => { status.textContent = 'Disconnected'; };

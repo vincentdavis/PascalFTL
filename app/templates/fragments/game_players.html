@@ -1,0 +1,34 @@
+<div id="players">
+  <div class="grid">
+    {% for item in players_data %}
+    {% set p = item.player %}
+    {% set baseline = item.baseline %}
+    <div class="card{% if p.health <= 0 %} danger{% endif %}">
+      <h3>{{ p.name }} {% if p.is_host %}<span class="pill">Host</span>{% endif %}</h3>
+      <p class="muted">{{ p.ship_type.name if p.ship_type else 'Unconfigured' }}</p>
+      <div class="grid" style="grid-template-columns: repeat(2, 1fr); gap: 6px;">
+        <div class="muted">Original</div>
+        <div class="muted">Current</div>
+        <div>Health (Hull): <strong>{{ baseline.health if baseline else '—' }}</strong></div>
+        <div>Health (Hull): <strong>{{ p.health }}</strong></div>
+        <div>Shields: <strong>{{ baseline.shields if baseline else '—' }}</strong></div>
+        <div>Shields: <strong>{{ p.shields }}</strong></div>
+        <div>Power: <strong>{{ baseline.power if baseline else '—' }}</strong></div>
+        <div>Power: <strong>{{ p.power }}</strong></div>
+        <div>Speed: <strong>{{ baseline.speed if baseline else '—' }}</strong></div>
+        <div>Speed: <strong>{{ p.speed }}</strong></div>
+        <div>Fuel: <strong>{{ baseline.fuel if baseline else '—' }}</strong></div>
+        <div>Fuel: <strong>{{ p.fuel }}</strong></div>
+        <div>Weapons: <strong>{{ baseline.weapons if baseline else '—' }}</strong></div>
+        <div>Weapons: <strong>{{ p.weapons }}</strong></div>
+        <div>Crew: <strong>{{ p.ship_type.base_crew if p.ship_type else 0 }}</strong></div>
+        <div>Crew: <strong>{{ p.ship_type.base_crew if p.ship_type else 0 }}</strong></div>
+        <div>Cargo Cap: <strong>{{ baseline.cargo_capacity if baseline else '—' }}</strong></div>
+        <div>Cargo Cap: <strong>{{ p.cargo_capacity }}</strong></div>
+        <div>Tokens: <strong>{{ p.tokens }}</strong></div>
+        <div class="muted">{% if p.health <= 0 %}Destroyed{% endif %}</div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
