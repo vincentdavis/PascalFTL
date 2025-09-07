@@ -32,7 +32,7 @@ class Ship(BaseModel):
     type: str
     name: str  # The user can later override/set the ship name
     price: int  # Price of the ship
-    weight: str  # The ship's weight class/category (e.g., light/medium/heavy)
+    weight: int  # The ship's weight numeric value
     weight_capacity: int  # How much weight can the ship carry?
 
     # Optional image file name (relative to templates/images/ship_images). If None, a default image is used.
@@ -65,7 +65,7 @@ BATTLESHIP: Ship = Ship(
     type=ShipType.BATTLESHIP,
     name=ShipType.BATTLESHIP,
     price=25,
-    weight="heavy",
+    weight=3,
     weight_capacity=200,
     hull_strength=180,
     hull_damage=0,
@@ -87,7 +87,7 @@ DESTROYER: Ship = Ship(
     type=ShipType.DESTROYER,
     name=ShipType.DESTROYER,
     price=20,
-    weight="heavy",
+    weight=3,
     weight_capacity=170,
     hull_strength=160,
     hull_damage=0,
@@ -109,7 +109,7 @@ FLYING_SAUCERS: Ship = Ship(
     type=ShipType.FLYING_SAUCERS,
     name=ShipType.FLYING_SAUCERS,
     price=15,
-    weight="light",
+    weight=1,
     weight_capacity=90,
     hull_strength=120,
     hull_damage=0,
@@ -131,7 +131,7 @@ CRUISER: Ship = Ship(
     type=ShipType.CRUISER,
     name=ShipType.CRUISER,
     price=20,
-    weight="medium",
+    weight=2,
     weight_capacity=150,
     hull_strength=150,
     hull_damage=0,
@@ -153,7 +153,7 @@ STAR_DESTROYER: Ship = Ship(
     type=ShipType.STAR_DESTROYER,
     name=ShipType.STAR_DESTROYER,
     price=30,
-    weight="super-heavy",
+    weight=4,
     weight_capacity=300,
     hull_strength=220,
     hull_damage=0,
@@ -175,7 +175,7 @@ STAR_FIGHTER: Ship = Ship(
     type=ShipType.STAR_FIGHTER,
     name=ShipType.STAR_FIGHTER,
     price=10,
-    weight="light",
+    weight=1,
     weight_capacity=80,
     hull_strength=100,
     hull_damage=0,
@@ -197,7 +197,7 @@ SERAPH: Ship = Ship(
     type=ShipType.SERAPH,
     name=ShipType.SERAPH,
     price=20,
-    weight="medium",
+    weight=2,
     weight_capacity=120,
     hull_strength=130,
     hull_damage=0,
@@ -219,7 +219,7 @@ YAMATO: Ship = Ship(
     type=ShipType.YAMATO,
     name=ShipType.YAMATO,
     price=20,
-    weight="heavy",
+    weight=3,
     weight_capacity=190,
     hull_strength=170,
     hull_damage=0,
@@ -241,7 +241,7 @@ DEFENDER = Ship(
     type=ShipType.DEFENDER,
     name=ShipType.DEFENDER,
     price=20,
-    weight="heavy",
+    weight=3,
     weight_capacity=200,
     hull_strength=200,
     hull_damage=0,
