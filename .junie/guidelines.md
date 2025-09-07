@@ -59,6 +59,7 @@ How a player can setup a game.
 - htmx frontend for page updates
 - Websockets to stream game updates to the frontend during game play.
 - postgresql database for storing game data. (SQLite is used for development)
+- Pydantic version 2.0.0+
 
 
 **Environment Variables**:
@@ -74,3 +75,6 @@ How a player can setup a game.
    - String quotes: Double quotes
    - Docstrings: Required for all public functions, classes, and methods
    - Also see the `ruff.toml` file.
+
+## Ignore Files
+- resources/*.*

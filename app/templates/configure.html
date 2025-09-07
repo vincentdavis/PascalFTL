@@ -12,28 +12,59 @@
   <form method="post" action="/configure" id="config-form">
     <input type="hidden" name="code" value="{{ game.code }}">
     <input type="hidden" name="player_id" value="{{ player.id }}">
-    <div class="grid">
-      <div>
-        <label for="ship_type_id">Ship</label><br>
-        <select id="ship_type_id" name="ship_type_id">
-          {% for s in ships %}
-            <option value="{{ s.id }}" data-cost="{{ s.cost }}">{{ s.name }} (cost {{ s.cost }})</option>
-          {% endfor %}
-        </select>
-      </div>
-      <div>
-        <label>Upgrades</label>
-        <div class="grid">
-        {% for u in upgrades %}
-          <label>
-            <input type="checkbox" name="upgrade_ids" value="{{ u.id }}" data-cost="{{ u.cost }}">
-            {{ u.name }} <span class="muted">({{ u.cost }})</span>
-          </label>
-        {% endfor %}
+    <input type="hidden" id="ship_type_id" name="ship_type_id" value="">
+
+    <div class="mb-3">
+      <label class="form-label">Choose your ship</label>
+      <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-3">
+        {% for s in ship_cards %}
+        <div class="col">
+          <div class="card h-100 ship-card{% if not s.id %} opacity-50{% endif %}" {% if s.id %}tabindex="0" role="button" aria-pressed="false"{% endif %} data-id="{{ s.id }}" data-cost="{{ s.cost }}">
+            <img src="{{ s.image_url }}" class="card-img-top" alt="{{ s.name }}">
+            <div class="card-body">
+              <h5 class="card-title" style="display:flex; justify-content:space-between; align-items:center;">
+                <span>{{ s.name }}</span>
+                {% if s.id %}
+                <span class="badge bg-secondary">{{ s.cost }} tokens</span>
+                {% else %}
+                <span class="badge bg-warning text-dark">Unavailable</span>
+                {% endif %}
+              </h5>
+              <div class="small text-muted">
+                <div>Weight: {{ s.weight }} | Crew: {{ s.crew }}</div>
+                <div>Hull/Shields/Power: {{ s.hull_strength }}/{{ s.shields }}/{{ s.power_capacity }}</div>
+                <div>Space/Capacity: {{ s.space_capacity }}/{{ s.weight_capacity }}</div>
+                <div>Weapons:</div>
+                <ul class="list-unstyled mb-0">
+                  <li>Lasers: {{ s.lasers }}</li>
+                  <li>Railguns: {{ s.railguns }}</li>
+                  <li>Missiles: {{ s.missiles }}</li>
+                  <li>Nuclear Weapons: {{ s.nuclear_weapons }}</li>
+                  <li>EMP: {{ s.emp }}</li>
+                </ul>
+              </div>
+            </div>
+          </div>
         </div>
+        {% endfor %}
       </div>
     </div>
-    <div style="margin-top:12px; display:flex; gap:12px; align-items:center;">
+
+    <div class="mb-3">
+      <label class="form-label">Upgrades</label>
+      <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-2">
+        {% for u in upgrades %}
+        <div class="col">
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" id="u{{ u.id }}" name="upgrade_ids" value="{{ u.id }}" data-cost="{{ u.cost }}">
+            <label class="form-check-label" for="u{{ u.id }}">{{ u.name }} <span class="muted">({{ u.cost }})</span></label>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div style="margin-top:12px; display:flex; gap:12px; align-items:center; flex-wrap:wrap;">
       <div class="pill">Estimated cost: <span id="est">0</span> / 100</div>
       <button type="submit" class="primary">Save &amp; Go to Lobby</button>
       <a class="pill" href="/join/{{ game.code }}">Invite link or code: {{ game.code }}</a>
@@ -45,12 +76,27 @@
   const BUDGET = 100;
   const banner = document.getElementById('over-budget');
   const estEl = document.getElementById('est');
+  const hiddenId = document.getElementById('ship_type_id');
+
+  let selectedCost = 0;
+
+  function setSelectedCard(card){
+    document.querySelectorAll('.ship-card').forEach(c => c.classList.remove('border-primary', 'shadow'));
+    if (card) {
+      card.classList.add('border-primary', 'shadow');
+      hiddenId.value = card.dataset.id || '';
+      selectedCost = parseInt(card.dataset.cost || '0');
+    } else {
+      hiddenId.value = '';
+      selectedCost = 0;
+    }
+    recalc();
+  }
+
   function recalc(){
-    const ship = document.getElementById('ship_type_id');
-    const shipCost = parseInt(ship.options[ship.selectedIndex].dataset.cost || '0');
     let upCost = 0;
     document.querySelectorAll('input[name="upgrade_ids"]:checked').forEach(cb => { upCost += parseInt(cb.dataset.cost || '0'); });
-    const total = shipCost + upCost;
+    const total = selectedCost + upCost;
     estEl.textContent = total;
     if (total > BUDGET) {
       banner.style.display = 'block';
@@ -60,7 +106,14 @@
       banner.classList.remove('flash');
     }
   }
-  document.getElementById('ship_type_id').addEventListener('change', recalc);
+
+  document.querySelectorAll('.ship-card').forEach(card => {
+    if (card.dataset.id) {
+      card.addEventListener('click', () => setSelectedCard(card));
+      card.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setSelectedCard(card); } });
+    }
+  });
+
   document.querySelectorAll('input[name="upgrade_ids"]').forEach(cb => cb.addEventListener('change', recalc));
   recalc();
 })();

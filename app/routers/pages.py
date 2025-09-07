@@ -153,8 +153,75 @@ async def configure_get(
     if not player or player.game_id != game.id:
         raise HTTPException(status_code=404, detail="Player not found")
 
-    ships = db.execute(select(ShipType).order_by(ShipType.name)).scalars().all()
+    # Load DB ships and upgrades
+    ships_db = db.execute(select(ShipType).order_by(ShipType.name)).scalars().all()
     upgrades = db.execute(select(UpgradeType).order_by(UpgradeType.name)).scalars().all()
+
+    # Build a list of card view models based on ships defined in app.ships
+    from ..ships import SHIPS
+    import os
+
+    # Map DB ships by normalized name for id/cost lookup
+    db_by_name = {s.name.strip().lower(): s for s in ships_db}
+
+    def resolve_image_filename(name: str) -> str:
+        # Try several naming variants in templates/images/ship_images
+        base_dir = os.path.join(os.path.dirname(__file__), "..", "templates", "images", "ship_images")
+        candidates = []
+        base = name.strip()
+        # Original, Title, Upper, Lower
+        candidates.extend([
+            f"{base}.png",
+            f"{base.title()}.png",
+            f"{base.upper()}.png",
+            f"{base.lower()}.png",
+        ])
+        # Also try replacing underscores with spaces
+        base2 = base.replace("_", " ")
+        candidates.extend([
+            f"{base2}.png",
+            f"{base2.title()}.png",
+            f"{base2.upper()}.png",
+            f"{base2.lower()}.png",
+        ])
+        for cand in candidates:
+            p = os.path.join(base_dir, cand)
+            if os.path.exists(p):
+                return cand
+        # Fallback default
+        return None
+
+    ship_cards = []
+    for ship in SHIPS.values():
+        nm = ship.name
+        db_ship = db_by_name.get(nm.strip().lower())
+        # Compute image filename preference: use ship.image_filename if set; else resolve by name
+        img = ship.image_filename or resolve_image_filename(nm)
+        # Build URL path for template; if None, use default background
+        if img:
+            image_url = f"/templates/images/ship_images/{img}"
+        else:
+            image_url = "/templates/images/pascals_ftl_ship_background.png"
+        ship_cards.append(
+            {
+                "name": nm,
+                "id": db_ship.id if db_ship else None,
+                "cost": ship.price,
+                "image_url": image_url,
+                "weight": ship.weight,
+                "weight_capacity": ship.weight_capacity,
+                "space_capacity": ship.space_capacity,
+                "hull_strength": ship.hull_strength,
+                "shields": ship.shields,
+                "power_capacity": ship.power_capacity,
+                "crew": ship.crew,
+                "lasers": ship.lasers,
+                "railguns": ship.railguns,
+                "missiles": ship.missiles,
+                "nuclear_weapons": ship.nuclear_weapons,
+                "emp": ship.emp,
+            }
+        )
 
     return templates.TemplateResponse(
         "configure.html",
@@ -162,7 +229,7 @@ async def configure_get(
             "request": request,
             "game": game,
             "player": player,
-            "ships": ships,
+            "ship_cards": ship_cards,
             "upgrades": upgrades,
         },
     )
